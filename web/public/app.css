@@ -1538,7 +1538,7 @@ h3 { font-size: 1.15rem; margin: 0 0 0.4rem; font-weight: 600; }
 }
 .legal { font-size: 0.85rem; }
 
-.prose { max-width: 46rem; }
+.prose { max-width: none; width: 100%; }
 mark.kw {
   color: var(--orange);
   background: rgba(230, 92, 0, 0.12);
@@ -1660,7 +1660,8 @@ mark.kw {
 }
 
 .roadmap-aim {
-  max-width: 46rem;
+  max-width: none;
+  width: 100%;
   margin: 0 0 1.4rem;
   color: var(--ink);
   font-size: 1.05rem;

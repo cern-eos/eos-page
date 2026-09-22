@@ -76,6 +76,10 @@ func Open(dbPath, mediaDir string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
+	if err := s.ensureSearchCommits(); err != nil {
+		db.Close()
+		return nil, err
+	}
 	if s.Setting("hero_video") == "" {
 		if err := s.SetSetting("hero_video", "ttSjYYBOlsM"); err != nil {
 			db.Close()
@@ -145,6 +149,7 @@ func (s *Store) stripEmDashes() error {
 		`UPDATE workshops SET title = REPLACE(REPLACE(title, ' — ', ' - '), '—', '-'), description = REPLACE(REPLACE(description, ' — ', ' - '), '—', '-') WHERE title LIKE '%—%' OR description LIKE '%—%'`,
 		`UPDATE talks SET title = REPLACE(REPLACE(title, ' — ', ' - '), '—', '-'), abstract = REPLACE(REPLACE(abstract, ' — ', ' - '), '—', '-'), speakers = REPLACE(REPLACE(speakers, ' — ', ' - '), '—', '-'), session = REPLACE(REPLACE(session, ' — ', ' - '), '—', '-') WHERE title LIKE '%—%' OR abstract LIKE '%—%' OR speakers LIKE '%—%' OR session LIKE '%—%'`,
 		`UPDATE docs SET title = REPLACE(REPLACE(title, ' — ', ' - '), '—', '-'), section = REPLACE(REPLACE(section, ' — ', ' - '), '—', '-'), summary = REPLACE(REPLACE(summary, ' — ', ' - '), '—', '-'), body = REPLACE(REPLACE(body, ' — ', ' - '), '—', '-') WHERE title LIKE '%—%' OR section LIKE '%—%' OR summary LIKE '%—%' OR body LIKE '%—%'`,
+		`UPDATE commits SET title = REPLACE(REPLACE(title, ' — ', ' - '), '—', '-'), body = REPLACE(REPLACE(body, ' — ', ' - '), '—', '-'), author = REPLACE(REPLACE(author, ' — ', ' - '), '—', '-') WHERE title LIKE '%—%' OR body LIKE '%—%' OR author LIKE '%—%'`,
 	}
 	for _, q := range stmts {
 		if _, err := s.db.Exec(q); err != nil {
@@ -161,6 +166,12 @@ func (s *Store) stripEmDashes() error {
 		return err
 	}
 	if _, err := s.db.Exec(`INSERT INTO docs_fts(id, title, section, summary, body) SELECT id, title, section, summary, body FROM docs`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`DELETE FROM commits_fts`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`INSERT INTO commits_fts(sha, title, body, author) SELECT sha, title, body, author FROM commits`); err != nil {
 		return err
 	}
 	return nil
@@ -271,6 +282,20 @@ CREATE VIRTUAL TABLE IF NOT EXISTS talks_fts USING fts5(
 );
 CREATE VIRTUAL TABLE IF NOT EXISTS docs_fts USING fts5(
   id UNINDEXED, title, section, summary, body,
+  tokenize='porter'
+);
+CREATE TABLE IF NOT EXISTS commits (
+  sha TEXT PRIMARY KEY,
+  short TEXT NOT NULL DEFAULT '',
+  date TEXT NOT NULL DEFAULT '',
+  year INTEGER NOT NULL DEFAULT 0,
+  author TEXT NOT NULL DEFAULT '',
+  title TEXT NOT NULL DEFAULT '',
+  body TEXT NOT NULL DEFAULT '',
+  url TEXT NOT NULL DEFAULT ''
+);
+CREATE VIRTUAL TABLE IF NOT EXISTS commits_fts USING fts5(
+  sha UNINDEXED, title, body, author,
   tokenize='porter'
 );
 `)

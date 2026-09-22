@@ -81,12 +81,13 @@ go test ./...
 
 ### Resources
 
-- Documentation, workshop talks, presentations, publications, release notes, CERN IT status
+- Documentation, workshop talks, presentations, publications, release notes, search commits
+- Search commits: live git log of the EOS `master` branch (headings, messages, authors)
 - Publications list with DOI / CERN CDS links
 
 ### Service
 
-- CERN-facing services with previews: Control Tower, EOS Orbit, CERNBox, SWAN, CTA
+- CERN-facing services with previews: Control Tower, EOS Orbit, CERNBox, SWAN, CTA, CERN IT status
 
 ### News
 

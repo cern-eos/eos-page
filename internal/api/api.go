@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/apeters/eospage/internal/chat"
@@ -32,10 +33,12 @@ type Server struct {
 	chatLimit        *chatLimiter
 	PublicFS         fs.FS
 	ControllerFS     fs.FS
+	commitMu         sync.Mutex
+	commitLast       time.Time
 }
 
 func New(st *store.Store, opt Options, publicFS, controllerFS fs.FS) *Server {
-	return &Server{
+	s := &Server{
 		Store:            st,
 		ControllerSecret: opt.ControllerSecret,
 		PublicBaseURL:    strings.TrimRight(opt.PublicBaseURL, "/"),
@@ -44,6 +47,8 @@ func New(st *store.Store, opt Options, publicFS, controllerFS fs.FS) *Server {
 		PublicFS:         publicFS,
 		ControllerFS:     controllerFS,
 	}
+	s.StartCommitSync()
+	return s
 }
 
 func (s *Server) Handler() http.Handler {
@@ -56,6 +61,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/chat", s.handleChatStatus)
 	mux.HandleFunc("POST /api/chat", s.handleChat)
 	mux.HandleFunc("GET /api/docs/view", s.handleDocsView)
+	mux.HandleFunc("GET /api/commits", s.handleCommits)
 
 	mux.HandleFunc("POST /api/controller/login", s.handleControllerLogin)
 	mux.HandleFunc("POST /api/controller/logout", s.handleControllerLogout)

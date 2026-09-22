@@ -1072,6 +1072,8 @@ function cardIcon(id) {
     "s-box": `<svg viewBox="0 0 24 24" ${stroke}><path d="M4.4 8.4 12 4.6l7.6 3.8v7.2L12 19.4 4.4 15.6z"/><path d="M12 12.2 19.6 8.4M12 12.2V19.4M12 12.2 4.4 8.4"/></svg>`,
     "s-swan": `<svg viewBox="0 0 24 24" ${stroke}><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M8 9h8M8 12.5h8M8 16h5"/></svg>`,
     "s-cta": `<svg viewBox="0 0 24 24" ${stroke}><rect x="3.2" y="5.2" width="17.6" height="13.6" rx="2.2"/><circle cx="8.4" cy="12" r="2.6"/><circle cx="15.6" cy="12" r="2.6"/><path d="M11 12h2"/></svg>`,
+    "s-status": `<svg viewBox="0 0 24 24" ${stroke}><path d="M5 18V9.2M10 18V6M15 18v-5.2M20 18V7.4"/><path d="M3.6 19h17"/></svg>`,
+    "r-commits": `<svg viewBox="0 0 24 24" ${stroke}><circle cx="7.2" cy="7" r="2.1"/><circle cx="16.8" cy="12" r="2.1"/><circle cx="7.2" cy="17" r="2.1"/><path d="M9.3 7h3.4c2 0 2.9.9 2.9 2.6V12M9.3 17h3.4c2 0 2.9-.9 2.9-2.6V12"/></svg>`,
     "sup-forum": `<svg viewBox="0 0 24 24" ${stroke}><path d="M5 6.2h14v9.2H9.2L5 18.8z"/></svg>`,
   };
   const svg = icons[id];
@@ -1302,6 +1304,21 @@ function workshops() {
     </div>`;
 }
 
+function commitsPage() {
+  const q = new URLSearchParams(location.search).get("q") || "";
+  return `
+    <div class="wrap">
+      <p class="kicker">Resources</p>
+      <h2>Search commits</h2>
+      <p class="muted">Live log from the EOS <code>master</code> branch. Headings, messages, and authors - refreshed from GitHub.</p>
+      <form class="search-box" data-search="commits" id="commit-form">
+        <input name="q" value="${esc(q)}" placeholder="author, fix, QuarkDB, SHA…" />
+        <button class="btn" type="submit">Search commits</button>
+      </form>
+      <div id="commit-results"><p class="muted">Loading the live master log…</p></div>
+    </div>`;
+}
+
 function searchPage() {
   const params = new URLSearchParams(location.search);
   const q = params.get("q") || "";
@@ -1508,7 +1525,7 @@ function resources() {
   return `
     <div class="wrap">
       <p class="kicker">Resources</p>
-      <h2>Documentation, papers, status</h2>
+      <h2>Documentation - Publications - Sourcecode</h2>
       ${cardGrid(cards("resource"), "grid-3")}
       <section class="pubs" id="publications">
         <div class="section-head">
@@ -1742,12 +1759,58 @@ function view() {
     case "/docs": return docsPage();
     case "/workshops": return workshops();
     case "/search": return searchPage();
+    case "/commits": return commitsPage();
     case "/resources": return resources();
     case "/service": return service();
     case "/news": return news();
     case "/community": return community();
     default: return notFound();
   }
+}
+
+function commitWhen(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso).slice(0, 10);
+  return d.toISOString().slice(0, 10);
+}
+
+function commitTable(commits) {
+  let lastYear = 0;
+  return `<div class="pub-table">${(commits || []).map((c) => {
+    const year = Number(c.year) || 0;
+    const yearHead = year && year !== lastYear ? `<div class="pub-year-band">${year}</div>` : "";
+    lastYear = year;
+    const note = c.body || "";
+    const when = commitWhen(c.date);
+    const sha = c.short || (c.sha || "").slice(0, 7);
+    return `${yearHead}
+      <article class="pub-row">
+        <span class="pub-year">${year || "-"}</span>
+        <div class="pub-main">
+          <h3>${c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noreferrer">${esc(c.title)}</a>` : esc(c.title)}</h3>
+          ${c.author ? `<p class="pub-authors">${esc(c.author)}</p>` : ""}
+          <p class="pub-venue">${esc(sha)}${when ? ` · ${esc(when)}` : ""} · master</p>
+          ${note ? `<p class="pub-note">${esc(note)}</p>` : ""}
+          ${c.url ? `<p class="pub-links"><a href="${esc(c.url)}" target="_blank" rel="noreferrer">Commit</a></p>` : ""}
+        </div>
+      </article>`;
+  }).join("")}</div>`;
+}
+
+function renderCommits(data) {
+  const commits = data.commits || [];
+  const when = data.fetchedAt ? commitWhen(data.fetchedAt) : "";
+  const src = data.source || "master";
+  if (!commits.length) {
+    return `<p class="empty">${data.query ? `No matches for “${esc(data.query)}”.` : "No commits loaded from master yet."}</p>`;
+  }
+  return `
+    <div class="section-head" style="margin-top:0.4rem">
+      <h2>${data.query ? "Matching commits" : "Latest commits on master"}</h2>
+      <p class="muted">${commits.length} ${commits.length === 1 ? "commit" : "commits"}${data.query ? ` for “${esc(data.query)}”` : ""}${data.total && !data.query ? ` · ${data.total} indexed` : ""} · ${esc(src)}${when ? ` · updated ${esc(when)}` : ""}. Hover a row for the message.</p>
+    </div>
+    ${commitTable(commits)}`;
 }
 
 function talkTable(talks) {
@@ -1804,6 +1867,17 @@ async function runSearch(scope, form) {
   const q = String(fd.get("q") || "").trim();
   const kind = String(fd.get("kind") || scope || "all");
   const year = String(fd.get("year") || "");
+  if (scope === "commits") {
+    const next = new URL("/commits", location.origin);
+    if (q) next.searchParams.set("q", q);
+    history.replaceState({}, "", next.pathname + next.search);
+    const res = await fetch("/api/commits?" + new URLSearchParams({ q }).toString());
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Could not load commits");
+    const box = $("#commit-results");
+    if (box) box.innerHTML = renderCommits(data);
+    return;
+  }
   if (scope === "all") {
     const next = new URL("/search", location.origin);
     next.searchParams.set("q", q);
@@ -1824,7 +1898,7 @@ function bindPage() {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       runSearch(form.dataset.search, form).catch((err) => {
-        const box = $("#search-results") || $("#doc-results");
+        const box = $("#search-results") || $("#doc-results") || $("#commit-results");
         if (box) box.innerHTML = `<p class="empty">${esc(err.message)}</p>`;
       });
     });
@@ -1832,6 +1906,10 @@ function bindPage() {
   if (path() === "/search") {
     const form = $("#search-form");
     if (form) runSearch("all", form);
+  }
+  if (path() === "/commits") {
+    const form = $("#commit-form");
+    if (form) runSearch("commits", form);
   }
   const contact = $("#contact-form");
   if (contact) {

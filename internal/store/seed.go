@@ -121,8 +121,7 @@ func (s *Store) seedIfEmpty() error {
 			Body: "Papers on EOS design, operations, LHC data handling, and XRootD."},
 		{ID: "r-rel", Kind: "resource", Sort: 5, Visible: true, Title: "Release notes", Href: "https://eos-docs.web.cern.ch/diopside/releases/diopside-release.html",
 			Body: "Diopside 5.x notes. Current stable line: 5.5.1 (August 2026)."},
-		{ID: "r-status", Kind: "resource", Sort: 6, Visible: true, Title: "CERN IT status", Href: "https://cern.service-now.com/service-portal?id=service_status_board&area=IT",
-			Body: "Planned interventions and incidents for CERN-hosted EOS services."},
+		searchCommitsCard(),
 	}
 	services := serviceCards()
 	collabs := []Card{
@@ -286,6 +285,23 @@ func serviceCards() []Card {
 		{ID: "s-cta", Kind: "service", Sort: 5, Visible: true, Title: "CTA", Href: "https://cta.web.cern.ch/",
 			Meta: "/static/media/cta-web.jpg",
 			Body: "CERN Tape Archive - disk cache plus tape."},
+		itStatusCard(),
+	}
+}
+
+func searchCommitsCard() Card {
+	return Card{
+		ID: "r-commits", Kind: "resource", Sort: 6, Visible: true, Title: "Search commits",
+		Href: "/commits",
+		Body: "Live git log of the EOS master branch: headings, messages, and authors.",
+	}
+}
+
+func itStatusCard() Card {
+	return Card{
+		ID: "s-status", Kind: "service", Sort: 6, Visible: true, Title: "CERN IT status",
+		Href: "https://cern.service-now.com/service-portal?id=service_status_board&area=IT",
+		Body: "Planned interventions and incidents for CERN-hosted EOS services.",
 	}
 }
 
@@ -296,6 +312,23 @@ func (s *Store) ensureOrbitService() error {
 		}
 	}
 	return nil
+}
+
+func (s *Store) ensureSearchCommits() error {
+	var title, href string
+	err := s.db.QueryRow(`SELECT title, href FROM cards WHERE id='r-status'`).Scan(&title, &href)
+	if err == nil {
+		low := strings.ToLower(title)
+		if strings.Contains(low, "it status") || strings.Contains(href, "service-now") {
+			if err := s.DeleteCard("r-status"); err != nil && err != ErrNotFound {
+				return err
+			}
+		}
+	}
+	if err := s.UpsertCard(searchCommitsCard()); err != nil {
+		return err
+	}
+	return s.UpsertCard(itStatusCard())
 }
 
 func (s *Store) ensurePublicationsCard() error {
