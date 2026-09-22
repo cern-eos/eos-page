@@ -1250,7 +1250,7 @@ button.hero-term { text-align: left; }
   display: flex;
   gap: 3.2rem;
   width: max-content;
-  animation: news-tick 22s linear infinite;
+  animation: news-tick 11s linear infinite;
 }
 .news-ticker-track span {
   white-space: nowrap;
