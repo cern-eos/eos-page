@@ -55,6 +55,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/inbox", s.handleInbox)
 	mux.HandleFunc("GET /api/chat", s.handleChatStatus)
 	mux.HandleFunc("POST /api/chat", s.handleChat)
+	mux.HandleFunc("GET /api/docs/view", s.handleDocsView)
 
 	mux.HandleFunc("POST /api/controller/login", s.handleControllerLogin)
 	mux.HandleFunc("POST /api/controller/logout", s.handleControllerLogout)

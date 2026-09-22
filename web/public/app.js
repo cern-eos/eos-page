@@ -1974,12 +1974,147 @@ async function load() {
   if (gl && setting("gitlab")) gl.href = setting("gitlab");
   if (gh && setting("github")) gh.href = setting("github");
   bindChat();
+  bindDocsViewer();
   render();
+}
+
+const DOCS_HOST = "eos-docs.web.cern.ch";
+let docsStack = [];
+let docsBusy = false;
+
+function isEosDocsURL(href) {
+  try {
+    return new URL(href, location.href).hostname === DOCS_HOST;
+  } catch (_) {
+    return false;
+  }
+}
+
+function docsViewer() {
+  return document.querySelector(".docs-viewer");
+}
+
+function closeDocsViewer() {
+  const root = docsViewer();
+  if (!root) return;
+  root.hidden = true;
+  root.classList.remove("is-open");
+  document.body.classList.remove("is-docs-open");
+  docsStack = [];
+}
+
+async function openDocsViewer(raw, push = true) {
+  const root = docsViewer();
+  if (!root) return;
+  let href = raw;
+  try {
+    href = new URL(raw, location.href).href;
+  } catch (_) {}
+  if (push) {
+    if (docsStack[docsStack.length - 1] !== href) docsStack.push(href);
+  }
+  root.hidden = false;
+  root.classList.add("is-open");
+  document.body.classList.add("is-docs-open");
+  const titleEl = root.querySelector("[data-docs-title]");
+  const bodyEl = root.querySelector("[data-docs-body]");
+  const orig = root.querySelector("[data-docs-orig]");
+  const prev = root.querySelector("[data-docs-prev]");
+  const next = root.querySelector("[data-docs-next]");
+  const back = root.querySelector("[data-docs-back]");
+  const pager = root.querySelector(".docs-viewer-pager");
+  if (titleEl) titleEl.textContent = "Opening docs…";
+  if (bodyEl) bodyEl.innerHTML = `<p class="docs-viewer-status">Loading the EOS documentation…</p>`;
+  if (orig) orig.href = href;
+  if (back) back.hidden = docsStack.length < 2;
+  if (prev) { prev.hidden = true; prev.removeAttribute("href"); }
+  if (next) { next.hidden = true; next.removeAttribute("href"); }
+  if (pager) pager.hidden = true;
+  docsBusy = true;
+  try {
+    const res = await fetch("/api/docs/view?url=" + encodeURIComponent(href));
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Could not open that docs page");
+    if (titleEl) titleEl.textContent = data.title || "EOS documentation";
+    if (orig) orig.href = data.url || href;
+    if (bodyEl) bodyEl.innerHTML = data.html || "<p>That page had no article text.</p>";
+    if (prev && data.prev) {
+      prev.hidden = false;
+      prev.href = data.prev.url;
+      prev.textContent = "← " + (data.prev.title || "Previous");
+    }
+    if (next && data.next) {
+      next.hidden = false;
+      next.href = data.next.url;
+      next.textContent = (data.next.title || "Next") + " →";
+    }
+    if (pager) pager.hidden = !(data.prev || data.next);
+    const hash = (() => { try { return new URL(href).hash; } catch (_) { return ""; } })();
+    if (hash && bodyEl) {
+      const id = decodeURIComponent(hash.replace(/^#/, ""));
+      const target = bodyEl.querySelector("#" + CSS.escape(id)) || bodyEl.querySelector(`[id="${id}"]`);
+      if (target) target.scrollIntoView({ block: "start" });
+      else bodyEl.scrollTop = 0;
+    } else if (bodyEl) {
+      bodyEl.scrollTop = 0;
+    }
+  } catch (err) {
+    if (titleEl) titleEl.textContent = "Documentation";
+    if (bodyEl) {
+      bodyEl.innerHTML = `<p class="docs-viewer-status">Could not load that page here. <a href="${esc(href)}" target="_blank" rel="noreferrer">Open it on eos-docs</a>.</p><p class="muted">${esc(err.message)}</p>`;
+    }
+  } finally {
+    docsBusy = false;
+  }
+}
+
+function bindDocsViewer() {
+  const root = docsViewer();
+  if (!root || root.dataset.bound) return;
+  root.dataset.bound = "1";
+  root.addEventListener("click", (e) => {
+    if (e.target.closest("[data-docs-close]")) {
+      e.preventDefault();
+      closeDocsViewer();
+      return;
+    }
+    if (e.target.closest("[data-docs-back]")) {
+      e.preventDefault();
+      if (docsStack.length > 1) {
+        docsStack.pop();
+        openDocsViewer(docsStack[docsStack.length - 1], false);
+      }
+      return;
+    }
+    const a = e.target.closest("a");
+    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const href = a.getAttribute("href") || "";
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      const id = decodeURIComponent(href.slice(1));
+      const target = root.querySelector("#" + CSS.escape(id)) || root.querySelector(`[id="${id}"]`);
+      target?.scrollIntoView({ block: "start" });
+      return;
+    }
+    if (isEosDocsURL(a.href)) {
+      e.preventDefault();
+      openDocsViewer(a.href);
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && root.classList.contains("is-open")) closeDocsViewer();
+  });
 }
 
 document.addEventListener("click", (e) => {
   if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
   const a = e.target.closest("a");
+  if (!a || a.hasAttribute("download")) return;
+  if (isEosDocsURL(a.href) && !a.closest(".docs-viewer")) {
+    e.preventDefault();
+    openDocsViewer(a.href);
+    return;
+  }
   if (!a || a.target === "_blank" || a.hasAttribute("download")) return;
   const href = a.getAttribute("href");
   if (!href || /^(mailto:|tel:|#)/.test(href)) return;

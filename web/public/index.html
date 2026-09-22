@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/app.css?v=windin2" />
+  <link rel="stylesheet" href="/static/app.css?v=docsview" />
 </head>
 <body>
   <header class="top">
@@ -73,6 +73,25 @@
       <p class="legal">© CERN · <a href="/" data-nav>Home</a></p>
     </div>
   </footer>
+  <div class="docs-viewer" hidden>
+    <div class="docs-viewer-backdrop" data-docs-close></div>
+    <div class="docs-viewer-panel" role="dialog" aria-modal="true" aria-labelledby="docs-viewer-title">
+      <header class="docs-viewer-head">
+        <button type="button" class="docs-viewer-back" data-docs-back hidden>Back</button>
+        <div class="docs-viewer-heading">
+          <span>EOS documentation</span>
+          <strong id="docs-viewer-title" data-docs-title>Documentation</strong>
+        </div>
+        <a class="docs-viewer-orig" data-docs-orig href="https://eos-docs.web.cern.ch/diopside/" target="_blank" rel="noreferrer">Open original</a>
+        <button type="button" class="docs-viewer-x" data-docs-close aria-label="Close documentation">×</button>
+      </header>
+      <nav class="docs-viewer-pager">
+        <a class="docs-viewer-prev" data-docs-prev hidden></a>
+        <a class="docs-viewer-next" data-docs-next hidden></a>
+      </nav>
+      <div class="docs-viewer-body" data-docs-body></div>
+    </div>
+  </div>
   <aside class="eos-chat" id="eos-chat">
     <div class="eos-chat-panel" id="eos-chat-panel">
       <header class="eos-chat-head">
@@ -149,6 +168,6 @@
       </span>
     </button>
   </aside>
-  <script src="/static/app.js?v=windin2"></script>
+  <script src="/static/app.js?v=docsview"></script>
 </body>
 </html>
