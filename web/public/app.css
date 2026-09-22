@@ -302,10 +302,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   object-fit: contain;
   mix-blend-mode: screen;
   transform-origin: center center;
-  animation: orbit-logo-spin 240s linear infinite;
-}
-@keyframes orbit-logo-spin {
-  to { transform: rotate(360deg); }
+  will-change: transform;
 }
 .orbit-wind-halo {
   position: absolute;
@@ -2012,7 +2009,7 @@ mark.kw {
   .pub-note { max-height: none; opacity: 1; margin-top: 0.45rem; }
   .hero-video iframe { display: none; }
   .hero-orbit { display: none; }
-  .orbit-logo img { animation: none; }
+  .orbit-logo img { animation: none; transform: none !important; }
   .orbit-wind,
   .orbit-wind-halo,
   .orbit-wind-flow,

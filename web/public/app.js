@@ -610,6 +610,43 @@ function startHeroBackground() {
   iframe.src = src;
 }
 
+let logoSpinRaf = 0;
+
+function stopLogoSpin() {
+  if (logoSpinRaf) cancelAnimationFrame(logoSpinRaf);
+  logoSpinRaf = 0;
+}
+
+function startLogoSpin() {
+  stopLogoSpin();
+  const img = document.querySelector(".orbit-logo img");
+  if (!img || prefersQuiet()) return;
+  const periodStart = 240;
+  const periodEnd = 10;
+  const rampSec = 60;
+  const deg0 = 360 / periodStart;
+  const deg1 = 360 / periodEnd;
+  let angle = 0;
+  let last = 0;
+  const t0 = performance.now();
+  const tick = (now) => {
+    if (!document.contains(img)) {
+      stopLogoSpin();
+      return;
+    }
+    if (!last) last = now;
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    const u = Math.min(1, (now - t0) / 1000 / rampSec);
+    const ease = u * u;
+    const degPerSec = deg0 + (deg1 - deg0) * ease;
+    angle = (angle + degPerSec * dt) % 360;
+    img.style.transform = `rotate(${angle.toFixed(3)}deg)`;
+    logoSpinRaf = requestAnimationFrame(tick);
+  };
+  logoSpinRaf = requestAnimationFrame(tick);
+}
+
 function startOrbitMovie() {
   const video = document.querySelector(".hero-orbit");
   if (!video) return;
@@ -1768,6 +1805,7 @@ function render() {
   stopCapacityChart();
   stopTermType();
   stopAboutHighlight();
+  stopLogoSpin();
   setNav();
   document.title = path() === "/" ? "EOS Open Storage" : `EOS · ${path().slice(1)}`;
   $("#app").innerHTML = view();
@@ -1779,6 +1817,7 @@ function render() {
   startTermType();
   // startHeroBackground(); // test: title background movie off
   startOrbitMovie();
+  startLogoSpin();
   startCapacityChart();
   const kick = () => {
     if (path() === "/") startTitleSpray();
