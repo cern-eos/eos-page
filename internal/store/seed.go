@@ -67,7 +67,7 @@ func (s *Store) seedIfEmpty() error {
 		"stat_clients":       "30k",
 		"stat_clients_label": "Clients",
 		"contact_email":      "eos-support@cern.ch",
-		"address":            "CERN IT-ST, Esplanade des Particules 1, 1211 Geneva, Switzerland",
+		"address":            "CERN Storage & Data Management Group, Esplanade des Particules 1, 1211 Geneva, Switzerland",
 		"github":             "https://github.com/cern-eos/eos",
 		"gitlab":             "https://gitlab.cern.ch/dss/eos",
 		"community":          "https://eos-community.web.cern.ch/",

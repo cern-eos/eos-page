@@ -31,12 +31,18 @@ func (s *session) run(timeout time.Duration, fn func(context.Context) error) err
 	tab, cancel := chromedp.NewContext(s.ctx)
 	defer cancel()
 	if timeout <= 0 {
-		timeout = 12 * time.Second
+		timeout = 22 * time.Second
 	}
 	tab, cancel = context.WithTimeout(tab, timeout)
 	defer cancel()
-	err := chromedp.Run(tab, chromedp.ActionFunc(fn))
-	if err != nil && s.ctx.Err() != nil {
+	if err := chromedp.Run(tab); err != nil {
+		if s.ctx.Err() != nil || isChromeGone(err) {
+			s.reset()
+		}
+		return err
+	}
+	err := fn(tab)
+	if err != nil && (s.ctx.Err() != nil || isChromeGone(err)) {
 		s.reset()
 	}
 	return err
@@ -44,7 +50,10 @@ func (s *session) run(timeout time.Duration, fn func(context.Context) error) err
 
 func (s *session) ensure() error {
 	if s.ctx != nil && s.ctx.Err() == nil {
-		return nil
+		if s.healthy() {
+			return nil
+		}
+		s.reset()
 	}
 	s.reset()
 	profile := ProfileDir()
@@ -56,16 +65,26 @@ func (s *session) ensure() error {
 	headed := os.Getenv("CHAT_SEARCH_HEADED") == "1"
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.UserDataDir(profile),
-		chromedp.Flag("headless", !headed),
 		chromedp.Flag("disable-gpu", true),
 		chromedp.Flag("no-first-run", true),
 		chromedp.Flag("no-default-browser-check", true),
 		chromedp.Flag("disable-dev-shm-usage", true),
+		chromedp.Flag("no-sandbox", true),
 		chromedp.Flag("disable-blink-features", "AutomationControlled"),
+		chromedp.Flag("enable-automation", false),
+		chromedp.UserAgent(chromeUA()),
 	)
+	if headed {
+		opts = append(opts, chromedp.Flag("headless", false))
+	} else {
+		opts = append(opts, chromedp.Flag("headless", "new"))
+	}
+	if bin := strings.TrimSpace(os.Getenv("CHAT_CHROME_BIN")); bin != "" {
+		opts = append(opts, chromedp.ExecPath(bin))
+	}
 	allocCtx, allocCancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	ctx, cancel := chromedp.NewContext(allocCtx)
-	start, startCancel := context.WithTimeout(ctx, 8*time.Second)
+	start, startCancel := context.WithTimeout(ctx, 12*time.Second)
 	defer startCancel()
 	if err := chromedp.Run(start); err != nil {
 		cancel()
@@ -76,6 +95,19 @@ func (s *session) ensure() error {
 	s.ctx = ctx
 	s.cancel = cancel
 	return nil
+}
+
+func (s *session) healthy() bool {
+	if s.ctx == nil || s.ctx.Err() != nil {
+		return false
+	}
+	probe, cancel := context.WithTimeout(s.ctx, 2*time.Second)
+	defer cancel()
+	var n int
+	if err := chromedp.Evaluate("1+1", &n).Do(probe); err != nil {
+		return false
+	}
+	return n == 2
 }
 
 func (s *session) reset() {
@@ -92,11 +124,14 @@ func (s *session) reset() {
 
 func clearStaleProfileLocks(dir string) {
 	lock := filepath.Join(dir, "SingletonLock")
-	target, err := os.Readlink(lock)
-	if err != nil {
+	pid := 0
+	if target, err := os.Readlink(lock); err == nil {
+		pid = lockPID(target)
+	} else if data, err := os.ReadFile(lock); err == nil {
+		pid = lockPID(strings.TrimSpace(string(data)))
+	} else {
 		return
 	}
-	pid := lockPID(target)
 	if pid > 0 && pidAlive(pid) {
 		return
 	}
@@ -121,4 +156,43 @@ func lockPID(target string) int {
 func pidAlive(pid int) bool {
 	err := syscall.Kill(pid, 0)
 	return err == nil
+}
+
+var (
+	skipChromeMu    sync.Mutex
+	skipChromeUntil time.Time
+)
+
+func chromeSkipped() bool {
+	skipChromeMu.Lock()
+	defer skipChromeMu.Unlock()
+	return time.Now().Before(skipChromeUntil)
+}
+
+func markChromeUnusable() {
+	skipChromeMu.Lock()
+	skipChromeUntil = time.Now().Add(10 * time.Minute)
+	skipChromeMu.Unlock()
+}
+
+func isBlockedErr(err error) bool {
+	if err == nil {
+		return false
+	}
+	s := strings.ToLower(err.Error())
+	return strings.Contains(s, "captcha") || strings.Contains(s, "blocked the browser") || strings.Contains(s, "unusual traffic")
+}
+
+func isChromeGone(err error) bool {
+	if err == nil {
+		return false
+	}
+	s := strings.ToLower(err.Error())
+	return strings.Contains(s, "websocket") ||
+		strings.Contains(s, "connection") ||
+		strings.Contains(s, "context canceled") ||
+		strings.Contains(s, "context deadline") ||
+		(strings.Contains(s, "chrome") && strings.Contains(s, "killed")) ||
+		strings.Contains(s, "ctx.done") ||
+		strings.Contains(s, "use of closed")
 }

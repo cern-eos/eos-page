@@ -49,7 +49,7 @@ const dismissConsentJS = `(() => {
 
 const extractJS = `(() => {
   const body = (document.body && document.body.innerText) || '';
-  const blocked = /unusual traffic|are you a robot|detected unusual|enable javascript/i.test(body)
+  const blocked = /unusual traffic|are you a robot|detected unusual|enable javascript|sorry\/index|why did this happen/i.test(body + ' ' + location.href)
     || (/before you continue to google/i.test(body) && body.length < 1200);
   const urlAI = /[?&]udm=50(?:&|$)/.test(location.search);
   const snAI = !!(window.google && window.google.sn === 'aim');
@@ -80,6 +80,49 @@ const extractJS = `(() => {
     sources: sources.slice(0, 16),
     isAI,
     ready: isAI && answer.length > 80 && !blocked,
+    blocked: !!blocked
+  };
+})()`
+
+const extractSERPJS = `(() => {
+  const body = (document.body && document.body.innerText) || '';
+  const blocked = /unusual traffic|are you a robot|detected unusual|enable javascript|sorry\/index|why did this happen/i.test(body + ' ' + location.href)
+    || (/before you continue to google/i.test(body) && body.length < 1200);
+  const junkHost = (u) => {
+    try {
+      const h = new URL(u, location.href).hostname;
+      return /(^|\.)google\./.test(h) || /(^|\.)gstatic\.com$/.test(h) || h === 'g.co';
+    } catch { return true; }
+  };
+  const items = [];
+  const seen = new Set();
+  const add = (title, href, snippet) => {
+    try { href = new URL(href, location.href).href; } catch { return; }
+    if (href.includes('/url?')) {
+      try { href = new URL(href).searchParams.get('q') || href; } catch {}
+    }
+    if (!href || seen.has(href) || junkHost(href)) return;
+    seen.add(href);
+    items.push({
+      title: (title || '').replace(/\s+/g, ' ').trim().slice(0, 160),
+      url: href,
+      snippet: (snippet || '').replace(/\s+/g, ' ').trim().slice(0, 240)
+    });
+  };
+  for (const h of document.querySelectorAll('#search h3, #rso h3, #center_col h3, div[data-sokoban-container] h3')) {
+    const a = h.closest('a');
+    if (!a) continue;
+    const block = (h.closest('div[data-sokoban-container], .g, [data-hveid]') || h.parentElement || {}).innerText || '';
+    const extra = block.split('\n').filter((l) => l && l !== (h.innerText || '').trim()).slice(0, 2).join(' ');
+    add(h.innerText, a.href || '', extra);
+    if (items.length >= 8) break;
+  }
+  const lines = items.map((i) => i.title + (i.snippet ? ' — ' + i.snippet : ''));
+  return {
+    answer: lines.join('\n'),
+    sources: items,
+    isAI: false,
+    ready: items.length > 0 && !blocked,
     blocked: !!blocked
   };
 })()`
@@ -175,7 +218,9 @@ func skipURL(raw string) bool {
 	return strings.Contains(h, "google.") ||
 		strings.HasSuffix(h, "gstatic.com") ||
 		h == "g.co" ||
-		strings.Contains(h, "googleusercontent.com")
+		strings.Contains(h, "googleusercontent.com") ||
+		strings.Contains(h, "bing.com") ||
+		strings.Contains(h, "duckduckgo.com")
 }
 
 func hostTitle(raw string) string {

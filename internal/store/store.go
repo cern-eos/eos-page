@@ -115,6 +115,13 @@ func Open(dbPath, mediaDir string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
+	if addr := s.Setting("address"); strings.Contains(addr, "IT-ST") {
+		next := strings.Replace(addr, "CERN IT-ST", "CERN Storage & Data Management Group", 1)
+		if err := s.SetSetting("address", next); err != nil {
+			db.Close()
+			return nil, err
+		}
+	}
 	if s.Setting("contributors") != "" {
 		if err := s.SetSetting("contributors", ""); err != nil {
 			db.Close()

@@ -23,6 +23,18 @@ func TestSearchQuery(t *testing.T) {
 	}
 }
 
+func TestWebQuery(t *testing.T) {
+	if q := webQuery("What is QuarkDB?"); !strings.Contains(strings.ToLower(q), "quarkdb") || strings.Contains(q, "This question") {
+		t.Fatalf("got %q", q)
+	}
+	if q := webQuery("How do I mount eosxd?"); q != "eosxd FUSE mount CERN EOS" {
+		t.Fatalf("expected eosxd search, got %q", q)
+	}
+	if q := webQuery("how do I mount fuse?"); !strings.Contains(q, "CERN EOS") {
+		t.Fatalf("expected EOS hint, got %q", q)
+	}
+}
+
 func TestClipSearchText(t *testing.T) {
 	if clipSearchText("  hello   world  ") != "hello world" {
 		t.Fatal("normalize")

@@ -37,7 +37,7 @@
   <!-- title block: full-width, all lines centered -->
   <g font-family="Helvetica Neue, IBM Plex Sans, Arial, sans-serif" text-anchor="middle">
     <rect x="48" y="36" width="1184" height="64" rx="12" fill="#fff" stroke="#e0e0e0"/>
-    <text x="640" y="58" fill="#e65c00" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12" letter-spacing="2.4">CERN IT-ST  &#183;  SYSTEM DRAWING  &#183;  EOS 5  &#183;  MGM  &#183;  FST  &#183;  QUARKDB</text>
+    <text x="640" y="58" fill="#e65c00" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="12" letter-spacing="2.4">CERN STORAGE &amp; DATA MANAGEMENT  &#183;  SYSTEM DRAWING  &#183;  EOS 5  &#183;  MGM  &#183;  FST  &#183;  QUARKDB</text>
     <text x="640" y="86" fill="#1a1a1a" font-size="26" font-weight="600" letter-spacing="-0.3">EOS Diopside architecture</text>
   </g>
 

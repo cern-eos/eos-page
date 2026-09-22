@@ -200,34 +200,44 @@ function capacityChartMarkup() {
         <span>Raw disk at CERN</span>
         <strong aria-live="polite"><em data-growth-year>2010</em><i data-growth-pb>~5 PB</i></strong>
       </figcaption>
-      <svg class="eos-growth-svg" viewBox="0 0 720 240" role="img" aria-label="EOS raw capacity at CERN from about 5 PB in 2010 to a 2.5 EB target in 2030">
+      <svg class="eos-growth-svg" viewBox="0 0 720 240" role="img" aria-label="EOS raw capacity at CERN from about 5 PB in 2010 to a 2.5 EB target in 2030. After 2025 the path is an open quantum-like band that only pins the 2030 arrival.">
         <defs>
           <linearGradient id="growth-fill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#e65c00" stop-opacity="0.4"/>
-            <stop offset="100%" stop-color="#e65c00" stop-opacity="0"/>
-          </linearGradient>
-          <linearGradient id="growth-target-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#e65c00" stop-opacity="0.16"/>
             <stop offset="100%" stop-color="#e65c00" stop-opacity="0"/>
           </linearGradient>
           <linearGradient id="growth-stroke" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stop-color="#f0a060"/>
             <stop offset="100%" stop-color="#fff6e8"/>
           </linearGradient>
+          <linearGradient id="growth-quantum-fill" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#ffb06a" stop-opacity="0.28"/>
+            <stop offset="45%" stop-color="#ffc48a" stop-opacity="0.58"/>
+            <stop offset="100%" stop-color="#e65c00" stop-opacity="0.22"/>
+          </linearGradient>
+          <filter id="growth-quantum-fuzz" x="-18%" y="-40%" width="136%" height="180%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.04 0.12" numOctaves="2" seed="11" result="n"/>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="4.5" xChannelSelector="R" yChannelSelector="G"/>
+            <feGaussianBlur stdDeviation="1.1"/>
+          </filter>
+          <filter id="growth-quantum-soft" x="-10%" y="-20%" width="120%" height="140%">
+            <feGaussianBlur stdDeviation="1.4"/>
+          </filter>
         </defs>
         <g class="eos-growth-plot">
           <path class="eos-growth-area"></path>
-          <path class="eos-growth-area-target"></path>
+          <path class="eos-growth-quantum-outer"></path>
+          <path class="eos-growth-quantum-inner"></path>
+          <path class="eos-growth-quantum-ghosts"></path>
         </g>
         <g class="eos-growth-grid"></g>
         <g class="eos-growth-plot-line">
           <path class="eos-growth-line"></path>
-          <path class="eos-growth-line-dash"></path>
         </g>
         <g class="eos-growth-marks"></g>
         <circle class="eos-growth-dot" r="4.6" cx="0" cy="0"></circle>
       </svg>
-      <p class="eos-growth-note">One point per year through 2025. Values with ~ are approximate. The dashed line extrapolates to the 2.5 EB target in 2030.</p>
+      <p class="eos-growth-note">One point per year through 2025. Values with ~ are approximate. After 2025 the path is unknown — only the 2.5 EB arrival in 2030 is fixed.</p>
     </figure>`;
 }
 
@@ -262,8 +272,8 @@ function curvePath(pts) {
   return d;
 }
 
-function growthSample(t) {
-  const { pts } = growthLayout();
+function sampleAlong(pts, t) {
+  if (!pts.length) return { x: 0, y: 0, year: 0, pb: 0, t };
   if (t >= 1) return { ...pts[pts.length - 1], t: 1 };
   const u = t * (pts.length - 1);
   const i = Math.min(pts.length - 2, Math.floor(u));
@@ -280,78 +290,156 @@ function growthSample(t) {
   };
 }
 
+function bandPath(up, lo) {
+  if (up.length < 2 || lo.length < 2) return "";
+  let d = `M ${up[0].x.toFixed(2)} ${up[0].y.toFixed(2)}`;
+  for (let i = 1; i < up.length; i++) d += ` L ${up[i].x.toFixed(2)} ${up[i].y.toFixed(2)}`;
+  for (let i = lo.length - 1; i >= 0; i--) d += ` L ${lo[i].x.toFixed(2)} ${lo[i].y.toFixed(2)}`;
+  return `${d} Z`;
+}
+
+function quantumEnvelope(s, xOf, yOf, floorPB = 1200, ceilPB = 2500) {
+  if (s <= 0.001) return { outer: "", inner: "", ghosts: "", lo: floorPB, hi: floorPB };
+  const clampPB = (pb) => Math.min(ceilPB, Math.max(floorPB, pb));
+  const n = Math.max(12, Math.round(32 * Math.max(s, 0.12)));
+  const upper = [];
+  const lower = [];
+  const innerU = [];
+  const innerL = [];
+  const ghosts = [[], [], [], []];
+  let lo = ceilPB;
+  let hi = floorPB;
+  const span = ceilPB - floorPB;
+  for (let i = 0; i <= n; i++) {
+    const u = (i / n) * s;
+    const x = xOf(EOS_HINGE_YEAR + 5 * u);
+    const mid = floorPB + span * u;
+    const bulge = Math.sin(Math.PI * u);
+    const top = clampPB(mid + 740 * bulge);
+    const bot = clampPB(mid - 700 * bulge);
+    lo = Math.min(lo, bot);
+    hi = Math.max(hi, top);
+    upper.push({ x, y: yOf(top) });
+    lower.push({ x, y: yOf(bot) });
+    innerU.push({ x, y: yOf(clampPB(mid + 300 * bulge)) });
+    innerL.push({ x, y: yOf(clampPB(mid - 270 * bulge)) });
+    ghosts[0].push({ x, y: yOf(clampPB(mid + 520 * bulge)) });
+    ghosts[1].push({ x, y: yOf(clampPB(mid - 470 * bulge)) });
+    ghosts[2].push({ x, y: yOf(clampPB(floorPB + span * (u * u) + 90 * bulge)) });
+    ghosts[3].push({ x, y: yOf(clampPB(floorPB + span * (1 - (1 - u) * (1 - u)) - 70 * bulge)) });
+  }
+  return {
+    outer: bandPath(upper, lower),
+    inner: bandPath(innerU, innerL),
+    ghosts: ghosts.map((pts) => curvePath(pts)).filter(Boolean).join(" "),
+    lo,
+    hi,
+  };
+}
+
+function formatQuantumRange(lo, hi) {
+  if (hi - lo < 90) return "2.5 EB";
+  const fmt = (pb) => (pb >= 1000 ? `${(pb / 1000).toFixed(1)} EB` : `${Math.round(pb)} PB`);
+  return `~${fmt(lo)}–${fmt(hi)}`;
+}
+
+const GROWTH_HIST_SHARE = 0.68;
+
 function growthVisible(t) {
-  const { pts, pad, innerH } = growthLayout();
-  const sample = growthSample(t);
+  const { pts, pad, innerH, xOf, yOf } = growthLayout();
   const hist = pts.filter((p) => !p.target);
   const hinge = hist[hist.length - 1];
-  const u = t * (pts.length - 1);
-  const lastIdx = Math.min(pts.length - 1, Math.floor(u + 1e-6));
-  const vis = pts.slice(0, lastIdx + 1);
-  if (t < 1 && (!vis.length || Math.abs(vis[vis.length - 1].x - sample.x) > 0.05)) {
-    vis.push(sample);
-  }
-  const visHist = vis.filter((p) => !p.target);
-  if (sample.year > EOS_HINGE_YEAR && hinge && (!visHist.length || visHist[visHist.length - 1].year < hinge.year)) {
-    visHist.push(hinge);
-  }
-  const line = visHist.length >= 2 ? curvePath(visHist) : `M ${sample.x.toFixed(2)} ${sample.y.toFixed(2)}`;
-  const dash = sample.year > EOS_HINGE_YEAR
-    ? `M ${hinge.x.toFixed(2)} ${hinge.y.toFixed(2)} L ${sample.x.toFixed(2)} ${sample.y.toFixed(2)}`
-    : "";
+  const target = pts[pts.length - 1];
+  const done = t >= 1;
+  const inQuantum = done || t > GROWTH_HIST_SHARE;
+  const histT = done || inQuantum ? 1 : t / GROWTH_HIST_SHARE;
+  const s = done ? 1 : inQuantum ? (t - GROWTH_HIST_SHARE) / (1 - GROWTH_HIST_SHARE) : 0;
+  const walk = sampleAlong(hist, histT);
+  const quantum = quantumEnvelope(s, xOf, yOf, hinge.pb, target.pb);
+  const vis = [];
+  const u = histT * (hist.length - 1);
+  const lastIdx = Math.min(hist.length - 1, Math.floor(u + 1e-6));
+  vis.push(...hist.slice(0, lastIdx + 1));
+  if (histT < 1 && (!vis.length || Math.abs(vis[vis.length - 1].x - walk.x) > 0.05)) vis.push(walk);
+  const line = vis.length >= 2 ? curvePath(vis) : `M ${walk.x.toFixed(2)} ${walk.y.toFixed(2)}`;
+  const areaEnd = histT >= 1 ? hinge : walk;
   const base = (pad.t + innerH).toFixed(2);
-  const areaEnd = sample.year > EOS_HINGE_YEAR ? hinge : sample;
-  const area = visHist.length
-    ? `${line} L ${areaEnd.x.toFixed(2)} ${base} L ${pts[0].x.toFixed(2)} ${base} Z`
+  const area = vis.length
+    ? `${line} L ${areaEnd.x.toFixed(2)} ${base} L ${hist[0].x.toFixed(2)} ${base} Z`
     : "";
-  const areaTarget = dash
-    ? `M ${hinge.x.toFixed(2)} ${hinge.y.toFixed(2)} L ${sample.x.toFixed(2)} ${sample.y.toFixed(2)} L ${sample.x.toFixed(2)} ${base} L ${hinge.x.toFixed(2)} ${base} Z`
-    : "";
-  return { line, dash, area, areaTarget, sample };
+  const year = inQuantum ? EOS_HINGE_YEAR + 5 * s : walk.year;
+  const xNow = inQuantum ? xOf(year) : walk.x;
+  const pbNow = inQuantum ? (done ? 2500 : quantum.hi) : walk.pb;
+  return {
+    line,
+    area,
+    quantum,
+    sample: walk,
+    hinge,
+    target,
+    done,
+    inQuantum,
+    s,
+    year,
+    xNow,
+    pbNow,
+  };
 }
 
 function applyGrowth(root, t) {
   const { pad, innerH } = growthLayout();
-  const { line, dash, area, areaTarget, sample } = growthVisible(t);
+  const view = growthVisible(t);
   const lineEl = root.querySelector(".eos-growth-line");
-  const dashEl = root.querySelector(".eos-growth-line-dash");
   const areaEl = root.querySelector(".eos-growth-area");
-  const targetEl = root.querySelector(".eos-growth-area-target");
+  const outerEl = root.querySelector(".eos-growth-quantum-outer");
+  const innerEl = root.querySelector(".eos-growth-quantum-inner");
+  const ghostEl = root.querySelector(".eos-growth-quantum-ghosts");
   const dot = root.querySelector(".eos-growth-dot");
   const yearEl = root.querySelector("[data-growth-year]");
   const pbEl = root.querySelector("[data-growth-pb]");
-  if (lineEl) lineEl.setAttribute("d", line);
-  if (dashEl) dashEl.setAttribute("d", dash);
-  if (areaEl) areaEl.setAttribute("d", area);
-  if (targetEl) targetEl.setAttribute("d", areaTarget);
+  if (lineEl) lineEl.setAttribute("d", view.line);
+  if (areaEl) areaEl.setAttribute("d", view.area);
+  if (outerEl) outerEl.setAttribute("d", view.quantum.outer);
+  if (innerEl) innerEl.setAttribute("d", view.quantum.inner);
+  if (ghostEl) ghostEl.setAttribute("d", view.quantum.ghosts);
   if (dot) {
-    dot.setAttribute("cx", sample.x.toFixed(2));
-    dot.setAttribute("cy", sample.y.toFixed(2));
-    dot.classList.toggle("is-target", sample.year > EOS_HINGE_YEAR);
+    const pin = view.done ? view.target : view.sample;
+    dot.setAttribute("cx", pin.x.toFixed(2));
+    dot.setAttribute("cy", pin.y.toFixed(2));
+    dot.classList.toggle("is-target", view.done);
   }
-  if (yearEl) yearEl.textContent = String(Math.round(sample.year));
-  if (pbEl) pbEl.textContent = formatCapacity(sample.pb, sample);
+  if (yearEl) yearEl.textContent = String(Math.round(view.year));
+  if (pbEl) {
+    pbEl.textContent = view.done
+      ? "2.5 EB"
+      : view.inQuantum
+        ? formatQuantumRange(view.quantum.lo, view.quantum.hi)
+        : formatCapacity(view.sample.pb, view.sample);
+  }
   const baseline = pad.t + innerH;
   root.querySelectorAll(".eos-growth-yline").forEach((el) => {
     const pb = Number(el.getAttribute("data-pb"));
-    const rise = Math.max(0, Math.min(1, (sample.pb + 60 - pb) / 180));
-    el.setAttribute("x2", sample.x.toFixed(2));
+    const rise = Math.max(0, Math.min(1, (view.pbNow + 60 - pb) / 180));
+    el.setAttribute("x2", view.xNow.toFixed(2));
     el.style.opacity = rise > 0 ? String(0.25 + 0.75 * rise) : "0";
   });
   root.querySelectorAll(".eos-growth-grid text[data-pb]").forEach((el) => {
     const pb = Number(el.getAttribute("data-pb"));
-    el.style.opacity = sample.pb + 60 >= pb ? "1" : "0";
+    el.style.opacity = view.pbNow + 60 >= pb ? "1" : "0";
   });
   root.querySelectorAll(".eos-growth-xline").forEach((el) => {
     const year = Number(el.getAttribute("data-year"));
-    const local = Math.max(0, Math.min(1, (sample.year + 0.2 - year) / 0.55));
+    const local = Math.max(0, Math.min(1, (view.year + 0.2 - year) / 0.55));
     el.setAttribute("y1", baseline.toFixed(2));
     el.setAttribute("y2", (baseline - local * innerH).toFixed(2));
     el.style.opacity = local > 0 ? "1" : "0";
   });
   root.querySelectorAll(".eos-growth-marks [data-year], .eos-growth-grid text.is-mark, .eos-growth-tick").forEach((el) => {
     const year = Number(el.getAttribute("data-year"));
-    el.style.opacity = sample.year + 0.15 >= year ? "1" : "0";
+    const ready = year <= EOS_HINGE_YEAR
+      ? view.year + 0.15 >= year
+      : view.s >= 0.96 || view.done;
+    el.style.opacity = ready ? "1" : "0";
   });
 }
 
@@ -586,14 +674,34 @@ function startCapacityChart() {
   stopCapacityChart();
   const root = document.querySelector(".eos-growth");
   if (!root) return;
+  if (document.hidden) {
+    const kick = () => {
+      document.removeEventListener("visibilitychange", kick);
+      if (path() === "/" && document.querySelector(".eos-growth")) startCapacityChart();
+    };
+    document.addEventListener("visibilitychange", kick, { once: true });
+    buildCapacityChart(root);
+    applyGrowth(root, 0);
+    return;
+  }
   buildCapacityChart(root);
   applyGrowth(root, 0);
-  const duration = prefersQuiet() ? 4800 : 7800;
-  const hold = 2200;
+  const duration = prefersQuiet() ? 4800 : 8600;
+  const hold = 5200;
   const gen = growthGen;
-  const t0 = performance.now();
+  let t0 = 0;
   const step = (now) => {
-    if (gen !== growthGen) return;
+    if (gen !== growthGen || !document.contains(root)) return;
+    if (document.hidden) {
+      growthRAF = 0;
+      const resume = () => {
+        document.removeEventListener("visibilitychange", resume);
+        if (gen === growthGen && path() === "/") startCapacityChart();
+      };
+      document.addEventListener("visibilitychange", resume, { once: true });
+      return;
+    }
+    if (!t0) t0 = now;
     const t = Math.min(1, (now - t0) / duration);
     applyGrowth(root, t);
     if (t < 1) {
@@ -601,12 +709,20 @@ function startCapacityChart() {
       return;
     }
     applyGrowth(root, 1);
+    growthRAF = 0;
     if (prefersQuiet()) return;
     growthHold = window.setTimeout(() => {
       if (gen === growthGen) startCapacityChart();
     }, hold);
   };
   growthRAF = requestAnimationFrame(step);
+}
+
+function ensureCapacityChart(force) {
+  if (path() !== "/") return;
+  if (!document.querySelector(".eos-growth") || document.hidden) return;
+  if (!force && (growthRAF || growthHold)) return;
+  startCapacityChart();
 }
 
 function spawnTitleSpark(h1, x, y) {
@@ -729,10 +845,65 @@ function setNav() {
   });
 }
 
+function latestNewsTicker() {
+  const item = (catalog.news || [])[0];
+  if (!item || !item.title) return "";
+  const label = [item.dateLabel, item.title].filter(Boolean).join("  ·  ");
+  const href = item.href || "/news";
+  const nav = href.startsWith("/") ? " data-nav" : ` target="_blank" rel="noreferrer"`;
+  const bit = `<span>${esc(label)}</span>`;
+  return `<div class="news-ticker" aria-label="Latest news">
+    <a class="news-ticker-link" href="${esc(href)}"${nav}>
+      <span class="news-ticker-track">${bit}${bit}</span>
+    </a>
+  </div>`;
+}
+
+function windSwirlMarkup() {
+  const spiral = (turns, rInner, rOuter, steps, phase) => {
+    let d = "";
+    for (let i = 0; i <= steps; i++) {
+      const u = i / steps;
+      const t = phase + u * turns * Math.PI * 2;
+      const r = rOuter + (rInner - rOuter) * u;
+      const x = 100 + r * Math.cos(t);
+      const y = 100 + r * Math.sin(t);
+      d += `${i ? "L" : "M"}${x.toFixed(2)} ${y.toFixed(2)}`;
+    }
+    return d;
+  };
+  const arms = [
+    spiral(2.15, 18, 82, 90, 0.2),
+    spiral(1.95, 22, 86, 84, 2.25),
+    spiral(1.7, 28, 90, 76, 4.15),
+  ];
+  const motes = [
+    [136, 74, 1.15], [62, 118, 0.9], [148, 128, 1.05],
+    [78, 64, 0.75], [118, 152, 0.95], [54, 86, 0.7],
+    [162, 96, 0.85], [92, 44, 0.65],
+  ];
+  return `
+    <i class="orbit-wind-halo"></i>
+    <svg class="orbit-wind" viewBox="0 0 200 200" aria-hidden="true">
+      <g class="orbit-wind-flow">
+        ${arms.map((d, i) => `<path class="orbit-wind-arm is-${i}" d="${d}"/>`).join("")}
+      </g>
+      <g class="orbit-wind-rings">
+        <ellipse cx="100" cy="100" rx="36" ry="32"/>
+        <ellipse cx="100" cy="100" rx="50" ry="43"/>
+        <ellipse cx="100" cy="100" rx="64" ry="54"/>
+      </g>
+      <g class="orbit-wind-motes">
+        ${motes.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join("")}
+      </g>
+    </svg>`;
+}
+
 function hero(extra = "") {
   const vid = setting("hero_video") || "ttSjYYBOlsM";
   return `
     <section class="hero">
+      <!-- test: title background movie off
       <div class="hero-video" aria-hidden="true">
         <img class="hero-poster" src="/static/media/hero-poster.jpg" alt="" />
         <iframe
@@ -741,6 +912,7 @@ function hero(extra = "") {
           allow="autoplay; encrypted-media; picture-in-picture"
           tabindex="-1"></iframe>
       </div>
+      -->
       <div class="hero-overlay"></div>
       <div class="hero-inner">
         <button type="button" class="hero-term" data-copy-term title="Copy command" aria-label="Copy ${esc(TERM_CLONE)}">
@@ -764,8 +936,13 @@ function hero(extra = "") {
               <a class="btn ghost" data-nav href="/docs">Install</a>
               <a class="btn ghost" data-nav href="/search">Search talks</a>
             </div>
+            ${latestNewsTicker()}
           </div>
           <div class="orbit-slot">
+            <div class="orbit-logo" aria-hidden="true">
+              ${windSwirlMarkup()}
+              <img src="/static/media/hero-poster.jpg" alt="" />
+            </div>
             <div class="orbit-frame">
               <video class="hero-orbit" muted loop playsinline preload="none" aria-label="EOS orbit"></video>
             </div>
@@ -1600,7 +1777,7 @@ function render() {
   if (path() === "/" || path() === "/about") startAboutHighlight();
   if (path() !== "/") return;
   startTermType();
-  startHeroBackground();
+  // startHeroBackground(); // test: title background movie off
   startOrbitMovie();
   startCapacityChart();
   const kick = () => {
@@ -1714,11 +1891,15 @@ async function sendChat(form) {
   form.querySelector("button").disabled = true;
   const wait = appendChat("wait", "Looking that up…");
   try {
+    const ac = new AbortController();
+    const abortTimer = window.setTimeout(() => ac.abort(), 60000);
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: q, history: chatHistory.slice(0, -1).slice(-8) }),
+      signal: ac.signal,
     });
+    window.clearTimeout(abortTimer);
     const data = await res.json().catch(() => ({}));
     wait?.remove();
     if (!res.ok) {
@@ -1730,7 +1911,8 @@ async function sendChat(form) {
     chatHistory.push({ role: "assistant", text: data.text || "" });
   } catch (err) {
     wait?.remove();
-    appendChat("error", err.message || "Ask EOS is unavailable.");
+    const timedOut = err && (err.name === "AbortError" || /abort/i.test(String(err.message || "")));
+    appendChat("error", timedOut ? "Ask EOS timed out. Try again." : (err.message || "Ask EOS is unavailable."));
   } finally {
     chatBusy = false;
     form.querySelector("button").disabled = false;
@@ -1829,6 +2011,12 @@ $("#news-form")?.addEventListener("submit", async (e) => {
   msg.textContent = res.ok ? "Subscribed — we will confirm from the controller." : (data.error || "Could not subscribe");
 });
 
+window.addEventListener("pageshow", (e) => {
+  ensureCapacityChart(e.persisted);
+});
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) ensureCapacityChart(true);
+});
 window.addEventListener("popstate", () => {
   if (prefersQuiet() || pageBusy) {
     render();

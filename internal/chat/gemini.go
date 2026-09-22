@@ -94,8 +94,11 @@ func (c *Client) Ask(ctx context.Context, question, siteContext string, history 
 	}
 	ai, webText, webSources, searchErr := liveSearch(ctx, q)
 	if c.api == nil {
-		if searchErr == nil && ai && strings.TrimSpace(webText) != "" {
-			return Reply{Text: webText, Sources: webSources}, nil
+		if searchErr == nil && strings.TrimSpace(webText) != "" {
+			if ai {
+				return Reply{Text: webText, Sources: webSources}, nil
+			}
+			return fallbackReply(q, siteContext, webText, webSources, nil), nil
 		}
 		return fallbackReply(q, siteContext, webText, webSources, searchErr), nil
 	}
@@ -119,6 +122,9 @@ func (c *Client) Ask(ctx context.Context, question, siteContext string, history 
 
 	cfg := &genai.GenerateContentConfig{
 		SystemInstruction: &genai.Content{Parts: []*genai.Part{{Text: systemPrompt(siteContext, searchErr)}}},
+	}
+	if searchErr != nil {
+		cfg.Tools = []*genai.Tool{{GoogleSearch: &genai.GoogleSearch{}}}
 	}
 	resp, err := c.api.Models.GenerateContent(ctx, Model, contents, cfg)
 	if err != nil {
