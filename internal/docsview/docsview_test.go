@@ -15,7 +15,8 @@ const sample = `<!DOCTYPE html><html><head><title>4.3. Getting Started — EOS D
 <div class="body" role="main">
   <div class="section" id="getting-started">
     <h1>Getting Started<a class="headerlink" href="#getting-started">¶</a></h1>
-    <p>Install with <a href="../architecture/index.html">architecture</a>.</p>
+    <p>Install with <a href="../architecture/index.html">architecture</a>. Fixes EOS-5043 and EOS-12.</p>
+    <p>Already linked <a href="https://its.cern.ch/jira/browse/EOS-5043">EOS-5043</a>.</p>
     <script>alert(1)</script>
     <p><a href="https://gitlab.cern.ch/eos">GitLab</a></p>
     <img src="../_images/foo.png" onerror="alert(1)"/>
@@ -49,6 +50,12 @@ func TestParseExtractsAndSanitizes(t *testing.T) {
 	}
 	if page.Next == nil || !strings.Contains(page.Next.URL, "configuration.html") {
 		t.Fatalf("next %+v", page.Next)
+	}
+	if !strings.Contains(page.HTML, `href="https://its.cern.ch/jira/browse/EOS-12"`) {
+		t.Fatalf("jira tickets not linked: %s", page.HTML)
+	}
+	if strings.Contains(page.HTML, `<a href="https://its.cern.ch/jira/browse/EOS-5043"><a`) {
+		t.Fatalf("already-linked ticket was wrapped again: %s", page.HTML)
 	}
 }
 

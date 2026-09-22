@@ -1896,19 +1896,18 @@ function community() {
       <h2>${esc(page("support").title || "Get in contact")}</h2>
       <div class="prose"><p>${esc(page("support").body)}</p></div>
       <p><a class="btn" href="mailto:${esc(setting("contact_email"))}">${esc(setting("contact_email"))}</a></p>
+      <div style="margin-top:1.1rem">${cardGrid([{
+        id: "sup-forum",
+        title: "Community Forum",
+        href: (setting("community") || "https://eos-community.web.cern.ch/").replace(/^http:/, "https:"),
+        body: "Discourse for EOS sites, operators, and users.",
+      }], "grid-2")}</div>
       <div class="section-head" style="margin-top:2rem"><h2>Core development team</h2></div>
       <div class="grid grid-3 team-grid">${core}</div>
       <div class="section-head" style="margin-top:2rem"><h2>Physics Data Service Lead &amp; openlab</h2></div>
       <div class="grid grid-3 team-grid">${ops}</div>
       <div class="section-head" style="margin-top:2rem"><h2>Collaborations</h2></div>
       ${cardGrid(cards("collab"), "grid-2")}
-      <div class="section-head" style="margin-top:2rem"><h2>Support</h2></div>
-      ${cardGrid([{
-        id: "sup-forum",
-        title: "Community Forum",
-        href: (setting("community") || "https://eos-community.web.cern.ch/").replace(/^http:/, "https:"),
-        body: "Discourse for EOS sites, operators, and users.",
-      }], "grid-2")}
       <form class="card" id="contact-form" style="margin-top:2rem;display:grid;gap:0.7rem">
         <h3>Write to the project</h3>
         <input name="name" required placeholder="Name" />

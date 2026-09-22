@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -137,6 +138,7 @@ func Parse(raw []byte, base *url.URL) (Page, error) {
 		return Page{}, fmt.Errorf("could not find the article on that docs page")
 	}
 	walk(main, base)
+	linkifyJira(main)
 	if h1 := find(main, func(n *html.Node) bool {
 		return n.Type == html.ElementNode && n.Data == "h1"
 	}); h1 != nil {
@@ -203,6 +205,60 @@ var dropTag = map[string]bool{
 	"script": true, "style": true, "iframe": true, "object": true, "embed": true,
 	"form": true, "input": true, "button": true, "textarea": true, "select": true,
 	"noscript": true, "link": true, "meta": true, "svg": true,
+}
+
+var jiraTicket = regexp.MustCompile(`\bEOS-\d+\b`)
+
+const jiraBrowse = "https://its.cern.ch/jira/browse/"
+
+func linkifyJira(n *html.Node) {
+	if n == nil {
+		return
+	}
+	if n.Type == html.ElementNode && (n.Data == "a" || n.Data == "pre" || n.Data == "code") {
+		return
+	}
+	for c := n.FirstChild; c != nil; {
+		next := c.NextSibling
+		if c.Type == html.TextNode {
+			linkifyJiraText(c)
+		} else {
+			linkifyJira(c)
+		}
+		c = next
+	}
+}
+
+func linkifyJiraText(text *html.Node) {
+	s := text.Data
+	locs := jiraTicket.FindAllStringIndex(s, -1)
+	if len(locs) == 0 || text.Parent == nil {
+		return
+	}
+	parent := text.Parent
+	last := 0
+	for _, loc := range locs {
+		if loc[0] > last {
+			parent.InsertBefore(&html.Node{Type: html.TextNode, Data: s[last:loc[0]]}, text)
+		}
+		id := s[loc[0]:loc[1]]
+		a := &html.Node{
+			Type: html.ElementNode,
+			Data: "a",
+			Attr: []html.Attribute{
+				{Key: "href", Val: jiraBrowse + id},
+				{Key: "target", Val: "_blank"},
+				{Key: "rel", Val: "noreferrer"},
+			},
+		}
+		a.AppendChild(&html.Node{Type: html.TextNode, Data: id})
+		parent.InsertBefore(a, text)
+		last = loc[1]
+	}
+	if last < len(s) {
+		parent.InsertBefore(&html.Node{Type: html.TextNode, Data: s[last:]}, text)
+	}
+	parent.RemoveChild(text)
 }
 
 func walk(n *html.Node, base *url.URL) {
