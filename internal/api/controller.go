@@ -239,6 +239,10 @@ func (s *Server) handleRefreshIndico(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	if err := s.Store.EnsureExternalPresentations(); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "workshops": len(workshops), "talks": len(talks), "index": s.Store.IndexStats()})
 }
 

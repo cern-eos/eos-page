@@ -1074,6 +1074,16 @@ function cardIcon(id) {
     "s-cta": `<svg viewBox="0 0 24 24" ${stroke}><rect x="3.2" y="5.2" width="17.6" height="13.6" rx="2.2"/><circle cx="8.4" cy="12" r="2.6"/><circle cx="15.6" cy="12" r="2.6"/><path d="M11 12h2"/></svg>`,
     "s-status": `<svg viewBox="0 0 24 24" ${stroke}><path d="M5 18V9.2M10 18V6M15 18v-5.2M20 18V7.4"/><path d="M3.6 19h17"/></svg>`,
     "r-commits": `<svg viewBox="0 0 24 24" ${stroke}><circle cx="7.2" cy="7" r="2.1"/><circle cx="16.8" cy="12" r="2.1"/><circle cx="7.2" cy="17" r="2.1"/><path d="M9.3 7h3.4c2 0 2.9.9 2.9 2.6V12M9.3 17h3.4c2 0 2.9-.9 2.9-2.6V12"/></svg>`,
+    "r-pres": `<svg viewBox="0 0 24 24" ${stroke}><rect x="3.6" y="5" width="16.8" height="11.2" rx="1.6"/><path d="M8 19.2h8M12 16.2v3"/></svg>`,
+    "r-docs": `<svg viewBox="0 0 24 24" ${stroke}><path d="M4.4 6.1c2.5-1.2 5.3-1.1 7.6.5v11.8c-2.3-1.6-5.1-1.7-7.6-.5z"/><path d="M19.6 6.1c-2.5-1.2-5.3-1.1-7.6.5v11.8c2.3-1.6 5.1-1.7 7.6-.5z"/></svg>`,
+    "r-search": `<svg viewBox="0 0 24 24" ${stroke}><circle cx="12" cy="7.1" r="2.15"/><path d="M7.1 17.8c.35-3.15 2.25-4.85 4.9-4.85s4.55 1.7 4.9 4.85"/><circle cx="6.05" cy="8.35" r="1.65"/><path d="M3.3 17.8c.2-2.15 1.3-3.4 2.85-3.7"/><circle cx="17.95" cy="8.35" r="1.65"/><path d="M20.7 17.8c-.2-2.15-1.3-3.4-2.85-3.7"/></svg>`,
+    "r-pubs": `<svg viewBox="0 0 24 24" ${stroke}><rect x="6.4" y="4.6" width="12.2" height="14.6" rx="1.2"/><path d="M4.8 6.8v12c0 .7.55 1.25 1.25 1.25H16"/><path d="M9 8.8h6.6M9 12h6.6M9 15.2h4.4"/></svg>`,
+    "r-rel": `<svg viewBox="0 0 24 24" ${stroke}><path d="M12.5 4.5 19.5 11.5a1.5 1.5 0 0 1 0 2.1l-5.9 5.9a1.5 1.5 0 0 1-2.1 0L4.5 12.5V4.5h8z"/><circle cx="9.1" cy="9.1" r="1.2"/></svg>`,
+    "n-ws27": `<svg viewBox="0 0 24 24" ${stroke}><rect x="3.6" y="5.2" width="16.8" height="14.4" rx="1.8"/><path d="M8 3.6v3.4M16 3.6v3.4M3.6 9.4h16.8"/><path d="M12 12.4v3.4l2.3 1.3"/></svg>`,
+    "n-ws26": `<svg viewBox="0 0 24 24" ${stroke}><path d="M8.2 10.6 12 7.8l3.8 2.8v1.8H8.2z"/><path d="M6.2 19.2 8.4 12.6h7.2l2.2 6.6z"/><path d="M11.15 7.6V5.3h1.7v2.3"/><circle cx="12" cy="4.4" r="0.95"/></svg>`,
+    "n-551": `<svg viewBox="0 0 24 24" ${stroke}><path d="M12 3.6 19.4 10.4 12 20.4 4.6 10.4z"/><path d="M4.6 10.4h14.8M8.1 10.4 12 3.6l3.9 6.8"/></svg>`,
+    "n-exa": `<svg viewBox="0 0 24 24" ${stroke}><ellipse cx="12" cy="6.4" rx="7" ry="2.35"/><path d="M5 6.4v3.2c0 1.3 3.1 2.35 7 2.35s7-1.05 7-2.35V6.4"/><ellipse cx="12" cy="14.6" rx="7" ry="2.35"/><path d="M5 14.6v3c0 1.3 3.1 2.35 7 2.35s7-1.05 7-2.35v-3"/></svg>`,
+    "n-generic": `<svg viewBox="0 0 24 24" ${stroke}><rect x="4.2" y="4.2" width="15.6" height="15.6" rx="1.5"/><path d="M7.2 8.2h9.6M7.2 12h9.6M7.2 15.8h6.2"/></svg>`,
     "sup-forum": `<svg viewBox="0 0 24 24" ${stroke}><path d="M5 6.2h14v9.2H9.2L5 18.8z"/></svg>`,
   };
   const svg = icons[id];
@@ -1319,23 +1329,31 @@ function commitsPage() {
     </div>`;
 }
 
+function searchKind(raw) {
+  if (raw === "talks") return "workshop";
+  if (raw === "all") return "workshop-docs";
+  return raw || "presentations";
+}
+
 function searchPage() {
   const params = new URLSearchParams(location.search);
   const q = params.get("q") || "";
-  const kind = params.get("kind") || "all";
+  const kind = searchKind(params.get("kind"));
   const year = params.get("year") || "";
   const years = (catalog.years || []).map((y) => `<option value="${y}" ${String(y) === year ? "selected" : ""}>${y}</option>`).join("");
   return `
     <div class="wrap">
       <p class="kicker">Search</p>
       <h2>Presentations and documentation</h2>
-      <p class="muted">${esc(catalog.index?.queryHelp || "Index of EOS workshop talks and eos-docs.")}</p>
+      <p class="muted">${esc(catalog.index?.queryHelp || "Index of EOS workshop talks, conference presentations, and eos-docs.")}</p>
       <form class="search-box" data-search="all" id="search-form">
         <input name="q" value="${esc(q)}" placeholder="FUSE, QuarkDB, CTA, site report, recycle bin…" />
         <select name="kind">
-          <option value="all" ${kind === "all" ? "selected" : ""}>Talks + docs</option>
-          <option value="talks" ${kind === "talks" ? "selected" : ""}>Talks only</option>
-          <option value="docs" ${kind === "docs" ? "selected" : ""}>Docs only</option>
+          <option value="presentations" ${kind === "presentations" ? "selected" : ""}>All Presentations</option>
+          <option value="workshop-docs" ${kind === "workshop-docs" ? "selected" : ""}>Workshop Presentations + Docs</option>
+          <option value="workshop" ${kind === "workshop" ? "selected" : ""}>Workshop Presentations</option>
+          <option value="external" ${kind === "external" ? "selected" : ""}>External Presentations</option>
+          <option value="docs" ${kind === "docs" ? "selected" : ""}>Docs</option>
         </select>
         <select name="year">
           <option value="">All years</option>
@@ -1563,7 +1581,7 @@ function news() {
   const items = (catalog.news || []).map((n) => `
     <article class="card set-card">
       <p class="meta">${esc(n.dateLabel)}</p>
-      <h3>${esc(n.title)}</h3>
+      <h3 class="card-title">${cardIcon(n.id) || cardIcon("n-generic")}${esc(n.title)}</h3>
       <p>${esc(n.body)}</p>
       ${n.href ? `<a class="more" ${n.href.startsWith("/") ? "data-nav" : 'target="_blank" rel="noreferrer"'} href="${esc(n.href)}">Read more →</a>` : ""}
     </article>`).join("");
@@ -1616,7 +1634,7 @@ function community() {
       <p><a class="btn" href="mailto:${esc(setting("contact_email"))}">${esc(setting("contact_email"))}</a></p>
       <div class="section-head" style="margin-top:2rem"><h2>Core development team</h2></div>
       <div class="grid grid-3 team-grid">${core}</div>
-      <div class="section-head" style="margin-top:2rem"><h2>Operations Lead &amp; openlab</h2></div>
+      <div class="section-head" style="margin-top:2rem"><h2>Physics Data Service Lead &amp; openlab</h2></div>
       <div class="grid grid-3 team-grid">${ops}</div>
       <div class="section-head" style="margin-top:2rem"><h2>Collaborations</h2></div>
       ${cardGrid(cards("collab"), "grid-2")}
@@ -1839,6 +1857,18 @@ function talkTable(talks) {
   }).join("")}</div>`;
 }
 
+function talkHeading(data) {
+  const k = data.kind || "";
+  if (data.query) {
+    if (k === "external") return "Matching external presentations";
+    if (k === "workshop" || k === "workshop-docs") return "Matching workshop presentations";
+    return "Matching presentations";
+  }
+  if (k === "external") return "External presentations";
+  if (k === "workshop" || k === "workshop-docs") return "Workshop presentations";
+  return "All presentations";
+}
+
 function renderHits(data) {
   const talks = data.talks || [];
   const docs = data.docs || [];
@@ -1847,7 +1877,7 @@ function renderHits(data) {
   }
   const talkBlock = talks.length ? `
     <div class="section-head" style="margin-top:0.4rem">
-      <h2>${data.query ? "Matching talks" : "All workshop talks"}</h2>
+      <h2>${talkHeading(data)}</h2>
       <p class="muted">${talks.length} ${talks.length === 1 ? "talk" : "talks"}${data.query ? ` for “${esc(data.query)}”` : ", newest first. Hover a row for the abstract."}</p>
     </div>
     ${talkTable(talks)}` : "";
@@ -1865,7 +1895,7 @@ function renderHits(data) {
 async function runSearch(scope, form) {
   const fd = new FormData(form);
   const q = String(fd.get("q") || "").trim();
-  const kind = String(fd.get("kind") || scope || "all");
+  const kind = searchKind(String(fd.get("kind") || (scope === "docs" ? "docs" : "presentations")));
   const year = String(fd.get("year") || "");
   if (scope === "commits") {
     const next = new URL("/commits", location.origin);
@@ -1931,6 +1961,9 @@ function bindPage() {
 }
 
 function render() {
+  if (path() === "/presentations") {
+    history.replaceState({}, "", "/search?kind=external");
+  }
   stopTitleSpray();
   stopCapacityChart();
   stopTermType();

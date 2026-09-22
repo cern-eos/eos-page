@@ -37,6 +37,17 @@ func TestSearchTalksAndDocs(t *testing.T) {
 		t.Fatal("expected FUSE documentation hits")
 	}
 
+	ext, err := st.Search("NFS", "external", 0, 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ext.Talks) == 0 {
+		t.Fatal("expected external NFS presentation")
+	}
+	if len(ext.Docs) != 0 {
+		t.Fatal("external search should not return docs")
+	}
+
 	ws, err := st.ListWorkshops(true)
 	if err != nil {
 		t.Fatal(err)
@@ -49,7 +60,7 @@ func TestSearchTalksAndDocs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var haveCommits, haveStatus, haveOldStatus bool
+	var haveCommits, haveStatus, haveOldStatus, havePres, haveWorkshopSearch bool
 	for _, c := range cards {
 		if c.ID == "r-commits" && c.Href == "/commits" {
 			haveCommits = true
@@ -60,9 +71,25 @@ func TestSearchTalksAndDocs(t *testing.T) {
 		if c.ID == "r-status" {
 			haveOldStatus = true
 		}
+		if c.ID == "r-pres" && c.Href == "/search?kind=external" && c.Title == "External Presentations" {
+			havePres = true
+		}
+		if c.ID == "r-search" && c.Href == "/search?kind=workshop" {
+			haveWorkshopSearch = true
+		}
 	}
 	if !haveCommits || !haveStatus || haveOldStatus {
 		t.Fatalf("commit/status cards: commits=%v status=%v old=%v", haveCommits, haveStatus, haveOldStatus)
+	}
+	if !havePres || !haveWorkshopSearch {
+		t.Fatalf("resource search cards: external=%v workshop=%v", havePres, haveWorkshopSearch)
+	}
+	pres, err := st.ListConferenceTalks()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(pres) < 20 {
+		t.Fatalf("expected conference presentations, got %d", len(pres))
 	}
 
 	if err := st.UpsertCommits([]Commit{{

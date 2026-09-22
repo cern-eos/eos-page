@@ -78,7 +78,7 @@ func (s *Store) seedIfEmpty() error {
 		"rpm_url":            "https://storage-ci.web.cern.ch/storage-ci/eos/diopside/tag/el-9/x86_64/",
 		"status_board":       "https://cern.service-now.com/service-portal?id=service_status_board&area=IT",
 		"control_tower":      "https://monit-grafana.cern.ch/d/baff3c33-decb-4b91-a6bf-c0ba84bdcbe4/eos-user-monitoring?orgId=22&from=now-24h&to=now&timezone=browser&var-cluster=$__all&var-HTTP=$__all&var-GRIDFPT=$__all&var-XROOTD=$__all&var-FUSE=$__all",
-		"presentations_url":  "https://cernbox.cern.ch/index.php/s/Kl0hxpeA5bFQ4Ho?path=%2Fpresentations",
+		"presentations_url":  "/search?kind=external",
 		"publications_url":   "https://cernbox.cern.ch/index.php/s/Kl0hxpeA5bFQ4Ho?path=%2Fpublications",
 		"indico_event_ids":   "1622471,1483930,1353101,1227241,1103358,985953,862873,775181,656157",
 		"docs_base":          "https://eos-docs.web.cern.ch/diopside/",
@@ -113,10 +113,8 @@ func (s *Store) seedIfEmpty() error {
 	resources := []Card{
 		{ID: "r-docs", Kind: "resource", Sort: 1, Visible: true, Title: "Documentation", Href: "https://eos-docs.web.cern.ch/diopside/",
 			Body: "Install, configure, and operate EOS 5 Diopside - architecture, manual, FAQ, and release notes."},
-		{ID: "r-search", Kind: "resource", Sort: 2, Visible: true, Title: "Workshop talks", Href: "/search",
-			Body: "Search every EOS workshop contribution since 2018: slides, recordings, and abstracts."},
-		{ID: "r-pres", Kind: "resource", Sort: 3, Visible: true, Title: "Presentations", Href: "https://cernbox.cern.ch/index.php/s/Kl0hxpeA5bFQ4Ho?path=%2Fpresentations",
-			Body: "A curated collection of conference talks about EOS."},
+		workshopTalksCard(),
+		presentationsCard(),
 		{ID: "r-pubs", Kind: "resource", Sort: 4, Visible: true, Title: "Publications", Href: "/resources#publications",
 			Body: "Papers on EOS design, operations, LHC data handling, and XRootD."},
 		{ID: "r-rel", Kind: "resource", Sort: 5, Visible: true, Title: "Release notes", Href: "https://eos-docs.web.cern.ch/diopside/releases/diopside-release.html",
@@ -246,7 +244,7 @@ func communityPeople() []Person {
 	}
 	ops := []Person{
 		{ID: "p-luca", Sort: 20, Visible: true, Name: "Luca Mascetti", Role: "Physics & Data Services Section Lead & openlab CTO", Email: "luca.mascetti@cern.ch"},
-		{ID: "p-ruhi", Sort: 21, Visible: true, Name: "Ruhi Choudhury", Role: "Operations Lead & openlab", Email: "ruhi.choudhury@cern.ch"},
+		{ID: "p-ruhi", Sort: 21, Visible: true, Name: "Ruhi Choudhury", Role: "Physics Data Service Lead & openlab", Email: "ruhi.choudhury@cern.ch"},
 	}
 	return append(core, ops...)
 }

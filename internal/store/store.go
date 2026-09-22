@@ -80,6 +80,10 @@ func Open(dbPath, mediaDir string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
+	if err := s.EnsureExternalPresentations(); err != nil {
+		db.Close()
+		return nil, err
+	}
 	if s.Setting("hero_video") == "" {
 		if err := s.SetSetting("hero_video", "ttSjYYBOlsM"); err != nil {
 			db.Close()

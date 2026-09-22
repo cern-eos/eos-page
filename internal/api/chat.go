@@ -92,7 +92,7 @@ func (s *Server) chatSiteContext(q string) string {
 	if s.Store == nil {
 		return ""
 	}
-	res, err := s.Store.Search(q, "all", 0, 4)
+	res, err := s.Store.Search(q, "workshop-docs", 0, 4)
 	if err != nil {
 		return ""
 	}

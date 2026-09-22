@@ -337,6 +337,55 @@ ON CONFLICT(id) DO UPDATE SET
 	return err
 }
 
+func (s *Store) UpsertTalk(t Talk) error {
+	if t.ID == "" {
+		return ErrInvalid
+	}
+	_, err := s.db.Exec(`
+INSERT INTO talks(id, event_id, year, title, abstract, speakers, session, url, slides, recording, start_date)
+VALUES(?,?,?,?,?,?,?,?,?,?,?)
+ON CONFLICT(id) DO UPDATE SET
+  event_id=excluded.event_id, year=excluded.year, title=excluded.title, abstract=excluded.abstract,
+  speakers=excluded.speakers, session=excluded.session, url=excluded.url, slides=excluded.slides,
+  recording=excluded.recording, start_date=excluded.start_date`,
+		t.ID, t.EventID, t.Year, t.Title, t.Abstract, t.Speakers, t.Session, t.URL, t.Slides, t.Recording, t.Start)
+	if err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`DELETE FROM talks_fts WHERE id=?`, t.ID); err != nil {
+		return err
+	}
+	_, err = s.db.Exec(`INSERT INTO talks_fts(id, title, abstract, speakers, session, year) VALUES(?,?,?,?,?,?)`,
+		t.ID, t.Title, t.Abstract, t.Speakers, t.Session, t.Year)
+	return err
+}
+
+func (s *Store) ListConferenceTalks() ([]TalkHit, error) {
+	rows, err := s.db.Query(`
+SELECT t.id, t.event_id, t.year, t.title, t.abstract, t.speakers, t.session, t.url, t.slides, t.recording, t.start_date,
+       COALESCE(w.title,'')
+FROM talks t
+JOIN workshops w ON w.id = t.event_id
+WHERE w.kind='conference'
+ORDER BY t.year DESC, t.start_date DESC, t.title COLLATE NOCASE`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []TalkHit
+	for rows.Next() {
+		var h TalkHit
+		if err := rows.Scan(&h.ID, &h.EventID, &h.Year, &h.Title, &h.Abstract, &h.Speakers, &h.Session, &h.URL, &h.Slides, &h.Recording, &h.Start, &h.WorkshopTitle); err != nil {
+			return nil, err
+		}
+		out = append(out, h)
+	}
+	if out == nil {
+		out = []TalkHit{}
+	}
+	return out, rows.Err()
+}
+
 func (s *Store) ReplaceTalks(talks []Talk) error {
 	uniqueIDs(talks, func(t Talk) string { return t.ID }, func(t *Talk, id string) { t.ID = id })
 	tx, err := s.db.Begin()

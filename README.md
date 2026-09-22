@@ -76,12 +76,13 @@ go test ./...
 ### Search talks
 
 - Full-text search (SQLite FTS5) over workshop talks and the docs extract
-- Filters: talks, docs, or both, and by year
+- Filters: all presentations, workshop presentations + docs, workshop presentations, external presentations, or docs, and by year
 - Results include Indico, slides, and recordings when available
 
 ### Resources
 
-- Documentation, workshop talks, presentations, publications, release notes, search commits
+- Documentation, workshop talks, external presentations, publications, release notes, search commits
+- Workshop talks and External Presentations open Search talks with the matching filter
 - Search commits: live git log of the EOS `master` branch (headings, messages, authors)
 - Publications list with DOI / CERN CDS links
 

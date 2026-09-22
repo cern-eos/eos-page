@@ -19,8 +19,48 @@ type DocHit struct {
 
 type SearchResult struct {
 	Query string    `json:"query"`
+	Kind  string    `json:"kind"`
 	Talks []TalkHit `json:"talks"`
 	Docs  []DocHit  `json:"docs"`
+}
+
+func normalizeSearchKind(kind string) string {
+	switch strings.TrimSpace(kind) {
+	case "docs":
+		return "docs"
+	case "workshop", "talks":
+		return "workshop"
+	case "workshop-docs", "workshop_docs":
+		return "workshop-docs"
+	case "external", "conference":
+		return "external"
+	case "all":
+		return "workshop-docs"
+	default:
+		return "presentations"
+	}
+}
+
+func talkScope(kind string) string {
+	switch kind {
+	case "workshop", "workshop-docs":
+		return "workshop"
+	case "external":
+		return "external"
+	default:
+		return ""
+	}
+}
+
+func talkScopeSQL(scope string) string {
+	switch scope {
+	case "workshop":
+		return `(w.kind IS NULL OR w.kind='' OR w.kind!='conference')`
+	case "external":
+		return `w.kind='conference'`
+	default:
+		return ""
+	}
 }
 
 var tokenRe = regexp.MustCompile(`[A-Za-z0-9][A-Za-z0-9._+-]{0,40}`)
@@ -49,16 +89,23 @@ func ftsQuery(raw string) string {
 	return strings.Join(parts, " OR ")
 }
 
-func (s *Store) ListTalks(year int) ([]TalkHit, error) {
+func (s *Store) ListTalks(year int, scope string) ([]TalkHit, error) {
 	query := `
 SELECT t.id, t.event_id, t.year, t.title, t.abstract, t.speakers, t.session, t.url, t.slides, t.recording, t.start_date,
        COALESCE(w.title,'')
 FROM talks t
 LEFT JOIN workshops w ON w.id = t.event_id`
 	args := []any{}
+	where := []string{}
 	if year > 0 {
-		query += ` WHERE t.year=?`
+		where = append(where, `t.year=?`)
 		args = append(args, year)
+	}
+	if extra := talkScopeSQL(scope); extra != "" {
+		where = append(where, extra)
+	}
+	if len(where) > 0 {
+		query += ` WHERE ` + strings.Join(where, " AND ")
 	}
 	query += ` ORDER BY t.year DESC, t.start_date DESC, t.title COLLATE NOCASE`
 	rows, err := s.db.Query(query, args...)
@@ -81,11 +128,12 @@ func (s *Store) Search(q, kind string, year int, limit int) (SearchResult, error
 	if limit <= 0 || limit > 80 {
 		limit = 40
 	}
-	out := SearchResult{Query: q, Talks: []TalkHit{}, Docs: []DocHit{}}
+	kind = normalizeSearchKind(kind)
+	out := SearchResult{Query: q, Kind: kind, Talks: []TalkHit{}, Docs: []DocHit{}}
 	match := ftsQuery(q)
 	if match == "" {
 		if kind != "docs" {
-			talks, err := s.ListTalks(year)
+			talks, err := s.ListTalks(year, talkScope(kind))
 			if err != nil {
 				return out, err
 			}
@@ -94,7 +142,7 @@ func (s *Store) Search(q, kind string, year int, limit int) (SearchResult, error
 		return out, nil
 	}
 
-	if kind == "" || kind == "all" || kind == "talks" {
+	if kind != "docs" {
 		query := `
 SELECT t.id, t.event_id, t.year, t.title, t.abstract, t.speakers, t.session, t.url, t.slides, t.recording, t.start_date,
        COALESCE(w.title,''), bm25(talks_fts)
@@ -103,6 +151,9 @@ JOIN talks t ON t.id = talks_fts.id
 LEFT JOIN workshops w ON w.id = t.event_id
 WHERE talks_fts MATCH ?`
 		args := []any{match}
+		if extra := talkScopeSQL(talkScope(kind)); extra != "" {
+			query += ` AND ` + extra
+		}
 		if year > 0 {
 			query += ` AND t.year=?`
 			args = append(args, year)
@@ -124,7 +175,7 @@ WHERE talks_fts MATCH ?`
 		rows.Close()
 	}
 
-	if kind == "" || kind == "all" || kind == "docs" {
+	if kind == "docs" || kind == "workshop-docs" {
 		query := `
 SELECT d.id, d.page_id, d.title, d.section, d.url, d.summary, d.body, d.sort, bm25(docs_fts)
 FROM docs_fts
@@ -150,9 +201,6 @@ LIMIT ?`
 		rows.Close()
 	}
 
-	if kind == "talks" {
-		out.Docs = []DocHit{}
-	}
 	if kind == "docs" {
 		out.Talks = []TalkHit{}
 	}
