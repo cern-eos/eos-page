@@ -651,7 +651,9 @@ function startOrbitAlign() {
   stopOrbitAlign();
   if (!document.querySelector(".orbit-logo")) return;
   orbitAlignAc = new AbortController();
-  const run = () => alignOrbitHex();
+  const run = () => {
+    alignOrbitHex();
+  };
   run();
   requestAnimationFrame(run);
   window.addEventListener("resize", run, { signal: orbitAlignAc.signal });

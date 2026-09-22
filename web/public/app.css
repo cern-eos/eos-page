@@ -842,7 +842,8 @@ button.hero-term { text-align: left; }
 .hero-term-pop {
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 0.55rem);
+  top: calc(100% + 0.7rem);
+  z-index: 8;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -856,7 +857,7 @@ button.hero-term { text-align: left; }
   letter-spacing: 0.02em;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
   opacity: 0;
-  transform: translate(-50%, 0.45rem) scale(0.86);
+  transform: translate(-50%, -0.45rem) scale(0.86);
   pointer-events: none;
   transition:
     opacity 0.28s ease,
@@ -894,6 +895,15 @@ button.hero-term { text-align: left; }
   text-transform: uppercase;
   color: #fff;
   margin: 0 0 1rem;
+}
+.hero .kicker {
+  font-family: var(--sans);
+  font-size: 1.389rem;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.35;
+  margin: 0 0 0.55rem;
+  max-width: min(42rem, 100%);
 }
 .hero h1, .title-loupe {
   font-size: clamp(2.6rem, 7vw, 5.2rem);
