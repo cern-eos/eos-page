@@ -627,6 +627,39 @@ function stopCollision() {
   collideAc = null;
 }
 
+let orbitAlignAc = null;
+
+function stopOrbitAlign() {
+  orbitAlignAc?.abort();
+  orbitAlignAc = null;
+}
+
+function alignOrbitHex() {
+  const logo = document.querySelector(".orbit-logo");
+  const title = document.querySelector(".title-letter") || document.querySelector(".title-loupe");
+  const slot = document.querySelector(".orbit-slot");
+  if (!logo || !title || !slot) return;
+  const titleR = title.getBoundingClientRect();
+  const slotR = slot.getBoundingClientRect();
+  const titleCy = titleR.top + titleR.height / 2;
+  const slotCy = slotR.top + slotR.height / 2;
+  const dy = titleCy - slotCy - logo.offsetHeight / 2;
+  logo.style.translate = `-50% ${dy.toFixed(1)}px`;
+}
+
+function startOrbitAlign() {
+  stopOrbitAlign();
+  if (!document.querySelector(".orbit-logo")) return;
+  orbitAlignAc = new AbortController();
+  const run = () => alignOrbitHex();
+  run();
+  requestAnimationFrame(run);
+  window.addEventListener("resize", run, { signal: orbitAlignAc.signal });
+  document.fonts?.ready?.then(() => {
+    if (document.querySelector(".orbit-logo")) run();
+  });
+}
+
 function aimCollision() {
   const a = document.querySelector(".collide-aim.is-a");
   const b = document.querySelector(".collide-aim.is-b");
@@ -869,26 +902,15 @@ function startTitleSpray() {
   spray.innerHTML = `<span class="tail"></span><span class="bar"></span>`;
   h1.appendChild(spray);
   const start = performance.now();
-  const swirl = document.querySelector(".orbit-wind") || document.querySelector(".orbit-logo");
-  const extra = swirl ? 3 : 1;
-  const duration = swirl ? 4000 : 2600;
+  const extra = 1;
+  const duration = 2600;
   const painted = new Set();
   let lastSpark = 0;
   const letterBox = (j) => {
     const last = letters[letters.length - 1].getBoundingClientRect();
     if (j < letters.length) return letters[j].getBoundingClientRect();
-    if (swirl && j >= letters.length) {
-      const s = swirl.getBoundingClientRect();
-      const u = [0.38, 1.02, 1.55][j - letters.length] ?? 1.55;
-      return {
-        left: s.left + s.width * u,
-        top: last.top + (s.top + s.height * 0.36 - last.top),
-        width: last.width,
-        height: last.height,
-      };
-    }
     return {
-      left: last.right + last.width * 0.08,
+      left: last.right + last.width * 0.06,
       top: last.top,
       width: last.width,
       height: last.height,
@@ -2210,6 +2232,7 @@ function render() {
   stopAboutHighlight();
   stopLogoSpin();
   stopCollision();
+  stopOrbitAlign();
   setNav();
   document.title = path() === "/" ? "EOS Open Storage" : `EOS · ${path().slice(1)}`;
   $("#app").innerHTML = view();
@@ -2223,6 +2246,7 @@ function render() {
   startOrbitMovie();
   startLogoSpin();
   startCollision();
+  startOrbitAlign();
   startCapacityChart();
   const kick = () => {
     if (path() === "/") startTitleSpray();
