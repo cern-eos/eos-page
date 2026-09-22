@@ -1447,7 +1447,9 @@ function paragraphs(text) {
 function architectureFigure() {
   return `
     <figure class="arch-figure">
-      <img class="arch-draw" src="/static/media/eos-architecture.svg?v=nomq" width="1280" height="820" alt="EOS Diopside architecture: clients reach the MGM over XRootD or HTTP; metadata is persisted in a three-node QuarkDB RAFT cluster; QuarkDB pub-sub carries MGM–FST messages; file data lives on FST disks, with CERNBox, S3, CIFS, SFTP and CTA at the edge." />
+      <div class="arch-draw-host" data-arch-src="/static/media/eos-architecture.svg?v=hover1">
+        <img class="arch-draw" src="/static/media/eos-architecture.svg?v=hover1" width="1280" height="820" alt="EOS Diopside architecture: clients reach the MGM over XRootD or HTTP; metadata is persisted in a three-node QuarkDB RAFT cluster; QuarkDB pub-sub carries MGM–FST messages; file data lives on FST disks, with CERNBox, S3, CIFS, SFTP and CTA at the edge." />
+      </div>
       <div class="arch-stack" aria-hidden="true">
         <p class="arch-layer">01 Access</p>
         <div class="arch-pills">
@@ -1468,7 +1470,7 @@ function architectureFigure() {
           <span>CERNBox</span><span>Samba / CIFS</span><span>S3 / MinIO</span><span>SFTP</span><span>CTA tape</span>
         </div>
       </div>
-      <figcaption class="arch-cap">Three core services - MGM, FST and QuarkDB. Messaging is QuarkDB pub-sub, not a separate MQ. Clients open on the MGM; data I/O is redirected to FSTs.</figcaption>
+      <figcaption class="arch-cap">Three core services - MGM, FST and QuarkDB. Messaging uses QuarkDB pub-sub. Clients open on the MGM; data I/O is redirected to FSTs.</figcaption>
     </figure>`;
 }
 
@@ -2186,7 +2188,41 @@ async function runSearch(scope, form) {
   if (box) box.innerHTML = renderHits(data);
 }
 
+let archSvgCache = "";
+
+function hydrateArchitecture() {
+  const host = document.querySelector(".arch-draw-host");
+  if (!host) return;
+  const src = host.getAttribute("data-arch-src");
+  if (!src) return;
+  const apply = (text) => {
+    if (!document.contains(host)) return;
+    const doc = new DOMParser().parseFromString(text, "image/svg+xml");
+    const svg = doc.querySelector("svg");
+    if (!svg || doc.querySelector("parsererror")) return;
+    svg.classList.add("arch-draw");
+    svg.removeAttribute("width");
+    svg.removeAttribute("height");
+    host.replaceChildren(svg);
+  };
+  if (archSvgCache) {
+    apply(archSvgCache);
+    return;
+  }
+  fetch(src)
+    .then((res) => {
+      if (!res.ok) throw new Error(res.statusText);
+      return res.text();
+    })
+    .then((text) => {
+      archSvgCache = text;
+      apply(text);
+    })
+    .catch(() => {});
+}
+
 function bindPage() {
+  hydrateArchitecture();
   $("#app").querySelectorAll("[data-search]").forEach((form) => {
     form.addEventListener("submit", (e) => {
       e.preventDefault();

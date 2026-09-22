@@ -1507,10 +1507,28 @@ h3 { font-size: 1.15rem; margin: 0 0 0.4rem; font-weight: 600; }
   overflow: hidden;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
 }
+.arch-draw-host,
 .arch-draw {
   display: block;
   width: 100%;
   height: auto;
+}
+@media (hover: hover) and (pointer: fine) {
+  .arch-draw .arch-hit {
+    cursor: pointer;
+  }
+  .arch-draw .arch-hit > rect:first-of-type {
+    paint-order: stroke fill;
+    transition: stroke 0.14s ease, stroke-width 0.14s ease;
+  }
+  .arch-draw .arch-hit:hover > rect:first-of-type {
+    stroke: #e65c00;
+    stroke-width: 2.8px;
+  }
+  .arch-draw .arch-hit-bar:hover > rect:first-of-type {
+    stroke: #fff8f0;
+    stroke-width: 3px;
+  }
 }
 .arch-cap {
   margin: 0;

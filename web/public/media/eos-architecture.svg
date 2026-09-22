@@ -44,32 +44,32 @@
   <!-- ACCESS -->
   <text x="640" y="128" text-anchor="middle" fill="#e65c00" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" letter-spacing="2.8">01  ACCESS</text>
   <g font-family="Helvetica Neue, IBM Plex Sans, Arial, sans-serif" text-anchor="middle">
-    <g transform="translate(48,142)">
+    <g class="arch-hit" transform="translate(48,142)">
       <rect width="184" height="72" rx="12" fill="url(#panel)" stroke="#d4d4d4" filter="url(#soft)"/>
       <text x="92" y="32" fill="#1a1a1a" font-size="16" font-weight="600">eos</text>
       <text x="92" y="52" fill="#5a5a5a" font-size="12">CLI / shell</text>
     </g>
-    <g transform="translate(248,142)">
+    <g class="arch-hit" transform="translate(248,142)">
       <rect width="184" height="72" rx="12" fill="url(#panel)" stroke="#d4d4d4" filter="url(#soft)"/>
       <text x="92" y="32" fill="#1a1a1a" font-size="16" font-weight="600">eosxd</text>
       <text x="92" y="52" fill="#5a5a5a" font-size="12">FUSE mount</text>
     </g>
-    <g transform="translate(448,142)">
+    <g class="arch-hit" transform="translate(448,142)">
       <rect width="184" height="72" rx="12" fill="url(#panel)" stroke="#d4d4d4" filter="url(#soft)"/>
       <text x="92" y="32" fill="#1a1a1a" font-size="15" font-weight="600">HTTP / WebDAV</text>
       <text x="92" y="52" fill="#5a5a5a" font-size="12">XrdHttp plugin</text>
     </g>
-    <g transform="translate(648,142)">
+    <g class="arch-hit" transform="translate(648,142)">
       <rect width="184" height="72" rx="12" fill="url(#panel)" stroke="#d4d4d4" filter="url(#soft)"/>
       <text x="92" y="32" fill="#1a1a1a" font-size="16" font-weight="600">gRPC</text>
       <text x="92" y="52" fill="#5a5a5a" font-size="12">native service API</text>
     </g>
-    <g transform="translate(848,142)">
+    <g class="arch-hit" transform="translate(848,142)">
       <rect width="184" height="72" rx="12" fill="url(#panel)" stroke="#d4d4d4" filter="url(#soft)"/>
       <text x="92" y="32" fill="#1a1a1a" font-size="16" font-weight="600">xrdcp &#183; xrd</text>
       <text x="92" y="52" fill="#5a5a5a" font-size="12">XRootD tools</text>
     </g>
-    <g transform="translate(1048,142)">
+    <g class="arch-hit" transform="translate(1048,142)">
       <rect width="184" height="72" rx="12" fill="url(#panel)" stroke="#d4d4d4" filter="url(#soft)"/>
       <text x="92" y="32" fill="#1a1a1a" font-size="16" font-weight="600">XrdCl</text>
       <text x="92" y="52" fill="#5a5a5a" font-size="12">C++ client library</text>
@@ -77,14 +77,16 @@
   </g>
 
   <path d="M140 214 v16 M340 214 v16 M540 214 v16 M740 214 v16 M940 214 v16 M1140 214 v16" stroke="#b0b0b0" stroke-width="1.2"/>
-  <rect x="48" y="230" width="1184" height="46" rx="10" fill="url(#orangebar)" filter="url(#soft)"/>
-  <text x="640" y="259" text-anchor="middle" fill="#fff" font-family="Helvetica Neue, IBM Plex Sans, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="0.4">XRootD  &#183;  strong auth  &#183;  redirect  &#183;  vector I/O  &#183;  TPC + checksums  &#183;  wait / waitresp</text>
+  <g class="arch-hit arch-hit-bar">
+    <rect x="48" y="230" width="1184" height="46" rx="10" fill="url(#orangebar)" filter="url(#soft)"/>
+    <text x="640" y="259" text-anchor="middle" fill="#fff" font-family="Helvetica Neue, IBM Plex Sans, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="0.4">XRootD  &#183;  strong auth  &#183;  redirect  &#183;  vector I/O  &#183;  TPC + checksums  &#183;  wait / waitresp</text>
+  </g>
 
   <!-- CONTROL -->
   <text x="640" y="308" text-anchor="middle" fill="#e65c00" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" letter-spacing="2.8">02  CONTROL PLANE</text>
   <path d="M640 276 v22" stroke="#e65c00" stroke-width="1.6" marker-end="url(#arr)"/>
 
-  <g transform="translate(48,322)" filter="url(#soft)" font-family="Helvetica Neue, IBM Plex Sans, Arial, sans-serif" text-anchor="middle">
+  <g class="arch-hit" transform="translate(48,322)" filter="url(#soft)" font-family="Helvetica Neue, IBM Plex Sans, Arial, sans-serif" text-anchor="middle">
     <rect width="560" height="168" rx="14" fill="url(#panel)" stroke="#e65c00" stroke-width="1.6"/>
     <rect x="0" y="0" width="560" height="8" rx="4" fill="#e65c00"/>
     <text x="280" y="36" fill="#e65c00" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" letter-spacing="1.8">MGM</text>
@@ -97,22 +99,22 @@
     <text x="327" y="141" fill="#444" font-size="11">STANDBY</text>
   </g>
 
-  <g transform="translate(640,322)" filter="url(#soft)" font-family="Helvetica Neue, IBM Plex Sans, Arial, sans-serif" text-anchor="middle">
+  <g class="arch-hit" transform="translate(640,322)" filter="url(#soft)" font-family="Helvetica Neue, IBM Plex Sans, Arial, sans-serif" text-anchor="middle">
     <rect width="592" height="168" rx="14" fill="url(#panel)" stroke="#d0d0d0"/>
     <text x="296" y="32" fill="#e65c00" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" letter-spacing="1.8">QDB</text>
     <text x="296" y="56" fill="#1a1a1a" font-size="22" font-weight="600">QuarkDB</text>
     <text x="296" y="80" fill="#5a5a5a" font-size="13">RAFT &#183; RocksDB &#183; pub-sub for MGM and FSTs</text>
-    <g transform="translate(58,104)" text-anchor="start">
+    <g class="arch-hit" transform="translate(58,104)" text-anchor="start">
       <rect width="152" height="46" rx="8" fill="#f7f7f7" stroke="#d4d4d4"/>
       <circle cx="22" cy="23" r="6" fill="#b0b0b0"/>
       <text x="86" y="28" text-anchor="middle" fill="#333" font-size="13">Node A &#183; follower</text>
     </g>
-    <g transform="translate(220,104)" text-anchor="start">
+    <g class="arch-hit" transform="translate(220,104)" text-anchor="start">
       <rect width="152" height="46" rx="8" fill="#fff4ea" stroke="#e65c00"/>
       <circle cx="22" cy="23" r="6" fill="#e65c00"/>
       <text x="86" y="28" text-anchor="middle" fill="#1a1a1a" font-size="13">Node B &#183; leader</text>
     </g>
-    <g transform="translate(382,104)" text-anchor="start">
+    <g class="arch-hit" transform="translate(382,104)" text-anchor="start">
       <rect width="152" height="46" rx="8" fill="#f7f7f7" stroke="#d4d4d4"/>
       <circle cx="22" cy="23" r="6" fill="#b0b0b0"/>
       <text x="86" y="28" text-anchor="middle" fill="#333" font-size="13">Node C &#183; follower</text>
@@ -130,28 +132,28 @@
   <text x="960" y="512" fill="#7a7a7a" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10">pub-sub</text>
 
   <g font-family="Helvetica Neue, IBM Plex Sans, Arial, sans-serif" text-anchor="middle">
-    <g transform="translate(48,544)" filter="url(#soft)">
+    <g class="arch-hit" transform="translate(48,544)" filter="url(#soft)">
       <rect width="280" height="118" rx="14" fill="url(#panel)" stroke="#d0d0d0"/>
       <text x="140" y="28" fill="#e65c00" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" letter-spacing="1.8">FST</text>
       <text x="140" y="54" fill="#1a1a1a" font-size="18" font-weight="600">Storage node</text>
       <text x="140" y="76" fill="#5a5a5a" font-size="12">replica layout &#183; checksums</text>
       <g transform="translate(140,92)"><use href="#disk"/></g>
     </g>
-    <g transform="translate(344,544)" filter="url(#soft)">
+    <g class="arch-hit" transform="translate(344,544)" filter="url(#soft)">
       <rect width="280" height="118" rx="14" fill="url(#panel)" stroke="#d0d0d0"/>
       <text x="140" y="28" fill="#e65c00" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" letter-spacing="1.8">FST</text>
       <text x="140" y="54" fill="#1a1a1a" font-size="18" font-weight="600">Storage node</text>
       <text x="140" y="76" fill="#5a5a5a" font-size="12">drain &#183; fsck &#183; repair</text>
       <g transform="translate(140,92)"><use href="#disk"/></g>
     </g>
-    <g transform="translate(640,544)" filter="url(#soft)">
+    <g class="arch-hit" transform="translate(640,544)" filter="url(#soft)">
       <rect width="280" height="118" rx="14" fill="url(#panel)" stroke="#d0d0d0"/>
       <text x="140" y="28" fill="#e65c00" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" letter-spacing="1.8">FST</text>
       <text x="140" y="54" fill="#1a1a1a" font-size="18" font-weight="600">Erasure coding</text>
       <text x="140" y="76" fill="#5a5a5a" font-size="12">e.g. raid6 &#183; 12 stripes</text>
       <g transform="translate(140,92)"><use href="#disk"/></g>
     </g>
-    <g transform="translate(936,544)" filter="url(#soft)">
+    <g class="arch-hit" transform="translate(936,544)" filter="url(#soft)">
       <rect width="296" height="118" rx="14" fill="url(#panel)" stroke="#d0d0d0"/>
       <text x="148" y="28" fill="#e65c00" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" letter-spacing="1.8">FST</text>
       <text x="148" y="54" fill="#1a1a1a" font-size="18" font-weight="600">Scale-out disks</text>
@@ -163,23 +165,23 @@
   <!-- ECOSYSTEM -->
   <text x="640" y="700" text-anchor="middle" fill="#e65c00" font-family="IBM Plex Mono, ui-monospace, monospace" font-size="11" letter-spacing="2.8">04  ECOSYSTEM</text>
   <g font-family="Helvetica Neue, IBM Plex Sans, Arial, sans-serif" text-anchor="middle">
-    <g transform="translate(48,716)">
+    <g class="arch-hit" transform="translate(48,716)">
       <rect width="216" height="52" rx="12" fill="#fff" stroke="#d4d4d4"/>
       <text x="108" y="32" fill="#1a1a1a" font-size="14" font-weight="600">CERNBox</text>
     </g>
-    <g transform="translate(280,716)">
+    <g class="arch-hit" transform="translate(280,716)">
       <rect width="216" height="52" rx="12" fill="#fff" stroke="#d4d4d4"/>
       <text x="108" y="32" fill="#1a1a1a" font-size="14" font-weight="600">Samba / CIFS</text>
     </g>
-    <g transform="translate(512,716)">
+    <g class="arch-hit" transform="translate(512,716)">
       <rect width="216" height="52" rx="12" fill="#fff" stroke="#d4d4d4"/>
       <text x="108" y="32" fill="#1a1a1a" font-size="14" font-weight="600">S3 / MinIO</text>
     </g>
-    <g transform="translate(744,716)">
+    <g class="arch-hit" transform="translate(744,716)">
       <rect width="216" height="52" rx="12" fill="#fff" stroke="#d4d4d4"/>
       <text x="108" y="32" fill="#1a1a1a" font-size="14" font-weight="600">SFTP / sshfs</text>
     </g>
-    <g transform="translate(976,716)">
+    <g class="arch-hit" transform="translate(976,716)">
       <rect width="256" height="52" rx="12" fill="#fff4ea" stroke="#e65c00"/>
       <text x="128" y="32" fill="#1a1a1a" font-size="14" font-weight="600">CTA &#183; tape workflows</text>
     </g>
