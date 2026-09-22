@@ -611,24 +611,69 @@ function startHeroBackground() {
 }
 
 let logoSpinRaf = 0;
+let logoSpinAc = null;
 
 function stopLogoSpin() {
   if (logoSpinRaf) cancelAnimationFrame(logoSpinRaf);
   logoSpinRaf = 0;
+  logoSpinAc?.abort();
+  logoSpinAc = null;
+}
+
+let collideAc = null;
+
+function stopCollision() {
+  collideAc?.abort();
+  collideAc = null;
+}
+
+function aimCollision() {
+  const a = document.querySelector(".collide-aim.is-a");
+  const b = document.querySelector(".collide-aim.is-b");
+  if (!a || !b) return;
+  const deg = Math.random() * 360;
+  const skew = (Math.random() - 0.5) * 48;
+  a.setAttribute("transform", `rotate(${deg.toFixed(1)} 200 100)`);
+  b.setAttribute("transform", `rotate(${(deg + skew).toFixed(1)} 200 100)`);
+}
+
+function startCollision() {
+  stopCollision();
+  const bunch = document.querySelector(".collide-bunch.is-l");
+  if (!bunch || prefersQuiet()) return;
+  collideAc = new AbortController();
+  aimCollision();
+  bunch.addEventListener("animationiteration", aimCollision, { signal: collideAc.signal });
+}
+
+function collidePulse(anim) {
+  if (!anim || anim.currentTime == null) return 1;
+  const t = (anim.currentTime % 10000) / 1000 - 2.76;
+  if (t < 0 || t > 0.82) return 1;
+  return 1 - 0.48 * Math.exp(-4.4 * t) * Math.sin(20 * t);
 }
 
 function startLogoSpin() {
   stopLogoSpin();
   const img = document.querySelector(".orbit-logo img");
+  const host = document.querySelector(".orbit-logo");
   if (!img || prefersQuiet()) return;
   const periodStart = 240;
   const periodEnd = 10;
-  const rampSec = 60;
+  const rampSec = 10;
   const deg0 = 360 / periodStart;
   const deg1 = 360 / periodEnd;
   let angle = 0;
   let last = 0;
+  let hovering = false;
+  let boost = 1;
+  let collideAnim = null;
   const t0 = performance.now();
+  logoSpinAc = new AbortController();
+  if (host) {
+    host.addEventListener("mouseenter", () => { hovering = true; }, { signal: logoSpinAc.signal });
+    host.addEventListener("mouseleave", () => { hovering = false; }, { signal: logoSpinAc.signal });
+  }
   const tick = (now) => {
     if (!document.contains(img)) {
       stopLogoSpin();
@@ -639,9 +684,18 @@ function startLogoSpin() {
     last = now;
     const u = Math.min(1, (now - t0) / 1000 / rampSec);
     const ease = u * u;
-    const degPerSec = deg0 + (deg1 - deg0) * ease;
+    const target = hovering ? 4 : 1;
+    boost += (target - boost) * (1 - Math.exp(-dt / 0.42));
+    const degPerSec = (deg0 + (deg1 - deg0) * ease) * boost;
     angle = (angle + degPerSec * dt) % 360;
-    img.style.transform = `rotate(${angle.toFixed(3)}deg)`;
+    if (!collideAnim || collideAnim.playState === "idle") {
+      const bunch = document.querySelector(".collide-bunch.is-l");
+      collideAnim = bunch?.getAnimations?.()[0] || null;
+    }
+    const pulse = collidePulse(collideAnim);
+    img.style.transform = `rotate(${angle.toFixed(3)}deg) scale(${(0.15 * pulse).toFixed(4)})`;
+    const hex = document.querySelector(".orbit-wind-hexmask");
+    if (hex) hex.setAttribute("transform", `rotate(${angle.toFixed(3)} 100 100)`);
     logoSpinRaf = requestAnimationFrame(tick);
   };
   logoSpinRaf = requestAnimationFrame(tick);
@@ -815,12 +869,24 @@ function startTitleSpray() {
   spray.innerHTML = `<span class="tail"></span><span class="bar"></span>`;
   h1.appendChild(spray);
   const start = performance.now();
-  const duration = 2600;
+  const swirl = document.querySelector(".orbit-wind") || document.querySelector(".orbit-logo");
+  const extra = swirl ? 3 : 1;
+  const duration = swirl ? 4000 : 2600;
   const painted = new Set();
   let lastSpark = 0;
   const letterBox = (j) => {
     const last = letters[letters.length - 1].getBoundingClientRect();
     if (j < letters.length) return letters[j].getBoundingClientRect();
+    if (swirl && j >= letters.length) {
+      const s = swirl.getBoundingClientRect();
+      const u = [0.38, 1.02, 1.55][j - letters.length] ?? 1.55;
+      return {
+        left: s.left + s.width * u,
+        top: last.top + (s.top + s.height * 0.36 - last.top),
+        width: last.width,
+        height: last.height,
+      };
+    }
     return {
       left: last.right + last.width * 0.08,
       top: last.top,
@@ -832,7 +898,7 @@ function startTitleSpray() {
     if (!document.body.contains(h1)) return;
     const t = Math.min(1, (now - start) / duration);
     const e = easeInOutQuad(t);
-    const steps = letters.length + 1;
+    const steps = letters.length + extra;
     const idx = e * (steps - 0.001);
     const i = Math.min(steps - 1, Math.floor(idx));
     const frac = idx - i;
@@ -949,41 +1015,213 @@ function latestNewsTicker() {
 }
 
 function windSwirlMarkup() {
-  const spiral = (turns, rInner, rOuter, steps, phase) => {
-    let d = "";
+  const spiralPts = (turns, rInner, rOuter, steps, phase) => {
+    const pts = [];
     for (let i = 0; i <= steps; i++) {
       const u = i / steps;
       const t = phase + u * turns * Math.PI * 2;
       const r = rOuter + (rInner - rOuter) * u;
-      const x = 100 + r * Math.cos(t);
-      const y = 100 + r * Math.sin(t);
-      d += `${i ? "L" : "M"}${x.toFixed(2)} ${y.toFixed(2)}`;
+      pts.push({ u, r, x: 100 + r * Math.cos(t), y: 100 + r * Math.sin(t) });
     }
-    return d;
+    return pts;
   };
+  const hurricaneWidth = (u, outer, inner) => {
+    const band = outer * (1 - u) ** 1.45;
+    const eye = 2.8 * Math.exp(-(((u - 0.82) / 0.11) ** 2));
+    return Math.max(0.7, band + inner + eye);
+  };
+  const spiralBand = (turns, rInner, rOuter, steps, phase, outerW, innerW) => {
+    const pts = spiralPts(turns, rInner, rOuter, steps, phase);
+    const left = [];
+    const right = [];
+    for (let i = 0; i < pts.length; i++) {
+      const prev = pts[Math.max(0, i - 1)];
+      const next = pts[Math.min(pts.length - 1, i + 1)];
+      let tx = next.x - prev.x;
+      let ty = next.y - prev.y;
+      const len = Math.hypot(tx, ty) || 1;
+      const nx = -ty / len;
+      const ny = tx / len;
+      const w = hurricaneWidth(pts[i].u, outerW, innerW) * 0.5;
+      left.push([pts[i].x + nx * w, pts[i].y + ny * w]);
+      right.push([pts[i].x - nx * w, pts[i].y - ny * w]);
+    }
+    const fmt = ([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`;
+    return `M${fmt(left[0])}${left.slice(1).map((p) => `L${fmt(p)}`).join("")}${right.reverse().map((p) => `L${fmt(p)}`).join("")}Z`;
+  };
+  const spiral = (turns, rInner, rOuter, steps, phase) => {
+    return spiralPts(turns, rInner, rOuter, steps, phase).map((p, i) =>
+      `${i ? "L" : "M"}${p.x.toFixed(2)} ${p.y.toFixed(2)}`
+    ).join("");
+  };
+  const bands = [
+    spiralBand(2.25, 10, 90, 110, 0.15, 11.5, 1.1),
+    spiralBand(2.05, 12, 94, 100, 2.2, 8.4, 0.9),
+    spiralBand(1.8, 14, 88, 88, 4.05, 6.2, 0.75),
+    spiralBand(2.35, 16, 96, 104, 5.3, 9.2, 0.85),
+  ];
   const arms = [
-    spiral(2.15, 18, 82, 90, 0.2),
-    spiral(1.95, 22, 86, 84, 2.25),
-    spiral(1.7, 28, 90, 76, 4.15),
+    spiral(2.15, 10, 88, 96, 0.2),
+    spiral(1.95, 12, 92, 90, 2.25),
+    spiral(1.7, 14, 96, 82, 4.15),
   ];
   const motes = [
-    [136, 74, 1.15], [62, 118, 0.9], [148, 128, 1.05],
-    [78, 64, 0.75], [118, 152, 0.95], [54, 86, 0.7],
-    [162, 96, 0.85], [92, 44, 0.65],
+    [148, 68, 1.15], [54, 128, 0.9], [158, 138, 1.05],
+    [70, 52, 0.75], [128, 162, 0.95], [44, 78, 0.7],
+    [170, 94, 0.85], [88, 36, 0.65],
   ];
+  const hex = Array.from({ length: 6 }, (_, i) => {
+    const t = (-90 + i * 60) * Math.PI / 180;
+    return `${(100 + 45 * Math.cos(t)).toFixed(1)},${(100 + 45 * Math.sin(t)).toFixed(1)}`;
+  }).join(" ");
   return `
     <i class="orbit-wind-halo"></i>
     <svg class="orbit-wind" viewBox="0 0 200 200" aria-hidden="true">
-      <g class="orbit-wind-flow">
-        ${arms.map((d, i) => `<path class="orbit-wind-arm is-${i}" d="${d}"/>`).join("")}
+      <defs>
+        <filter id="orbit-wind-cloud" x="-40%" y="-40%" width="180%" height="180%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.038" numOctaves="3" seed="4" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="3.4" xChannelSelector="R" yChannelSelector="G"/>
+          <feGaussianBlur stdDeviation="1.6"/>
+        </filter>
+        <filter id="orbit-wind-softmask" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1.6"/>
+        </filter>
+        <mask id="orbit-wind-touch" maskUnits="userSpaceOnUse">
+          <rect width="200" height="200" fill="white"/>
+          <g filter="url(#orbit-wind-softmask)">
+            <polygon class="orbit-wind-hexmask" points="${hex}" fill="black"/>
+            <circle cx="100" cy="100" r="17" fill="white"/>
+          </g>
+        </mask>
+      </defs>
+      <g class="orbit-wind-clip" mask="url(#orbit-wind-touch)">
+        <g class="orbit-wind-flow" filter="url(#orbit-wind-cloud)">
+          ${bands.map((d, i) => `<path class="orbit-wind-band is-${i}" d="${d}"/>`).join("")}
+          ${arms.map((d, i) => `<path class="orbit-wind-arm is-${i}" d="${d}"/>`).join("")}
+        </g>
+        <g class="orbit-wind-rings" filter="url(#orbit-wind-cloud)">
+          <ellipse cx="100" cy="100" rx="62" ry="54"/>
+          <ellipse cx="100" cy="100" rx="76" ry="66"/>
+          <ellipse cx="100" cy="100" rx="90" ry="78"/>
+        </g>
+        <g class="orbit-wind-motes">
+          ${motes.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join("")}
+        </g>
       </g>
-      <g class="orbit-wind-rings">
-        <ellipse cx="100" cy="100" rx="36" ry="32"/>
-        <ellipse cx="100" cy="100" rx="50" ry="43"/>
-        <ellipse cx="100" cy="100" rx="64" ry="54"/>
+    </svg>`;
+}
+
+function orbitSkyMarkup() {
+  let seed = 91;
+  const rnd = () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+  const dots = [];
+  for (let i = 0; i < 1100; i++) {
+    const ang = rnd() * Math.PI * 2;
+    const rad = 18 + rnd() ** 0.72 * 80;
+    const fade = Math.max(0.12, (1 - rad / 102) ** 1.15);
+    const kind = rnd() < 0.28 ? "is-ice" : rnd() < 0.42 ? "is-hot" : "";
+    const r = rnd() < 0.08 ? 0.42 + rnd() * 0.28 : 0.12 + rnd() * 0.22;
+    dots.push(
+      `<circle class="orbit-sky-star ${kind}" cx="${(100 + rad * Math.cos(ang)).toFixed(2)}" cy="${(100 + rad * Math.sin(ang)).toFixed(2)}" r="${r.toFixed(2)}" style="--o:${fade.toFixed(2)};animation-delay:${(rnd() * 3.2).toFixed(2)}s"/>`
+    );
+  }
+  return `<svg class="orbit-sky" viewBox="0 0 200 200" aria-hidden="true">${dots.join("")}</svg>`;
+}
+
+function collisionMarkup() {
+  const rnd = (seed0) => {
+    let seed = seed0;
+    return () => {
+      seed = (seed * 16807) % 2147483647;
+      return (seed - 1) / 2147483646;
+    };
+  };
+  const bunch = (cls, seed0) => {
+    const r = rnd(seed0);
+    const dots = [];
+    for (let i = 0; i < 26; i++) {
+      const x = (r() - 0.5) * 36;
+      const y = (r() - 0.5) * 8.5;
+      const rad = 0.45 + r() * 0.9;
+      dots.push(`<circle class="collide-proton" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rad.toFixed(2)}"/>`);
+    }
+    return `
+      <g class="collide-bunch ${cls}">
+        <ellipse class="collide-bunch-trail" cx="-18" cy="0" rx="22" ry="5.2"/>
+        <ellipse class="collide-bunch-halo" cx="0" cy="0" rx="26" ry="8.5"/>
+        <ellipse class="collide-bunch-core" cx="0" cy="0" rx="14" ry="3.8"/>
+        ${dots.join("")}
+      </g>`;
+  };
+  const shower = (axisDeg, cls, seed0) => {
+    const r = rnd(seed0);
+    const ax = axisDeg * Math.PI / 180;
+    const parts = [];
+    const addPhoton = (x1, y1, ang, len, depth) => {
+      const x2 = x1 + Math.cos(ang) * len;
+      const y2 = y1 + Math.sin(ang) * len;
+      parts.push(`<line class="collide-photon d${depth}" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`);
+      if (depth < 3) {
+        addElectron(x2, y2, ang + 0.16 + r() * 0.08, len * (0.55 + r() * 0.12), depth + 1, 1);
+        addElectron(x2, y2, ang - 0.16 - r() * 0.08, len * (0.52 + r() * 0.1), depth + 1, -1);
+      }
+    };
+    const addElectron = (x1, y1, ang, len, depth, bend) => {
+      const x2 = x1 + Math.cos(ang) * len;
+      const y2 = y1 + Math.sin(ang) * len;
+      const mx = x1 + Math.cos(ang) * len * 0.48 - Math.sin(ang) * (4.2 + depth) * bend;
+      const my = y1 + Math.sin(ang) * len * 0.48 + Math.cos(ang) * (4.2 + depth) * bend;
+      parts.push(`<path class="collide-electron d${depth}" d="M${x1.toFixed(1)} ${y1.toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}"/>`);
+      if (depth < 3) {
+        addPhoton(x1 + (x2 - x1) * 0.42, y1 + (y2 - y1) * 0.42, ang + 0.2 * bend, len * 0.52, depth + 1);
+        if (depth < 2) addPhoton(x2, y2, ang - 0.1 * bend, len * 0.38, depth + 1);
+      }
+    };
+    addPhoton(200, 100, ax - 0.09, 40, 0);
+    addPhoton(200, 100, ax + 0.11, 44, 0);
+    addElectron(200, 100, ax + 0.24, 32, 0, 1);
+    addElectron(200, 100, ax - 0.26, 30, 0, -1);
+    const gx = 200 + Math.cos(ax) * 38;
+    const gy = 100 + Math.sin(ax) * 38;
+    parts.unshift(`<ellipse class="collide-shower-glow" cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" rx="40" ry="15" transform="rotate(${axisDeg.toFixed(1)} ${gx.toFixed(1)} ${gy.toFixed(1)})"/>`);
+    for (let i = 0; i < 7; i++) {
+      const a = ax + (r() - 0.5) * 0.7;
+      const d = 18 + r() * 48;
+      parts.push(`<circle class="collide-spark d${i % 3}" cx="${(200 + Math.cos(a) * d).toFixed(1)}" cy="${(100 + Math.sin(a) * d).toFixed(1)}" r="${(0.55 + r() * 0.7).toFixed(2)}"/>`);
+    }
+    return `<g class="collide-shower ${cls}">${parts.join("")}</g>`;
+  };
+  const rays = Array.from({ length: 10 }, (_, i) => {
+    const a = (i / 10) * Math.PI * 2;
+    return `<line class="collide-flash-ray" x1="${(200 + Math.cos(a) * 4).toFixed(1)}" y1="${(100 + Math.sin(a) * 4).toFixed(1)}" x2="${(200 + Math.cos(a) * 22).toFixed(1)}" y2="${(100 + Math.sin(a) * 22).toFixed(1)}"/>`;
+  }).join("");
+  return `
+    <svg class="orbit-collide" viewBox="0 0 400 200" aria-hidden="true">
+      <defs>
+        <filter id="collide-soft" x="-50%" y="-80%" width="200%" height="260%">
+          <feGaussianBlur stdDeviation="1.3"/>
+        </filter>
+        <radialGradient id="collide-flash-g" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fff8e6"/>
+          <stop offset="35%" stop-color="#ffe08a"/>
+          <stop offset="100%" stop-color="#ff8a3a" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <line class="collide-beam" x1="8" y1="100" x2="392" y2="100"/>
+      <g transform="translate(200 100)">
+        ${bunch("is-l", 17)}
+        ${bunch("is-r", 41)}
       </g>
-      <g class="orbit-wind-motes">
-        ${motes.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join("")}
+      <g class="collide-flash">
+        <circle class="collide-flash-core" cx="200" cy="100" r="16" fill="url(#collide-flash-g)"/>
+        <g filter="url(#collide-soft)">${rays}</g>
+      </g>
+      <g class="collide-event">
+        <g class="collide-aim is-a">${shower(-38, "is-a", 23)}</g>
+        <g class="collide-aim is-b">${shower(142, "is-b", 59)}</g>
       </g>
     </svg>`;
 }
@@ -1029,8 +1267,10 @@ function hero(extra = "") {
           </div>
           <div class="orbit-slot">
             <div class="orbit-logo" aria-hidden="true">
+              ${orbitSkyMarkup()}
               ${windSwirlMarkup()}
-              <img src="/static/media/hero-poster.jpg" alt="" />
+              <img src="/static/media/eos-hex.png" alt="" />
+              ${collisionMarkup()}
             </div>
             <div class="orbit-frame">
               <video class="hero-orbit" muted loop playsinline preload="none" aria-label="EOS orbit"></video>
@@ -1969,6 +2209,7 @@ function render() {
   stopTermType();
   stopAboutHighlight();
   stopLogoSpin();
+  stopCollision();
   setNav();
   document.title = path() === "/" ? "EOS Open Storage" : `EOS · ${path().slice(1)}`;
   $("#app").innerHTML = view();
@@ -1981,6 +2222,7 @@ function render() {
   // startHeroBackground(); // test: title background movie off
   startOrbitMovie();
   startLogoSpin();
+  startCollision();
   startCapacityChart();
   const kick = () => {
     if (path() === "/") startTitleSpray();
