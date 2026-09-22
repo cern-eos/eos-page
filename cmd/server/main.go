@@ -68,9 +68,9 @@ func main() {
 	if err != nil {
 		log.Printf("warning: Ask EOS Gemini client: %v — answers will use Chrome Google search only", err)
 	} else if ask != nil && geminiKey != "" {
-		log.Printf("Ask EOS chat: Gemini %s with Chrome Google search", chat.Model)
+		log.Printf("Ask EOS chat: Gemini %s with Chrome Google AI Mode", chat.Model)
 	} else {
-		log.Printf("Ask EOS chat: Chrome Google search")
+		log.Printf("Ask EOS chat: Chrome Google AI Mode")
 	}
 
 	srv := api.New(st, api.Options{

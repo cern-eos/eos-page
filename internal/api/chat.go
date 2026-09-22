@@ -73,7 +73,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid json")
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 50*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 75*time.Second)
 	defer cancel()
 	reply, err := s.Chat.Ask(ctx, body.Message, s.chatSiteContext(body.Message), body.History)
 	if err != nil {

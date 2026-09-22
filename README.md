@@ -44,8 +44,9 @@ Hero copy, stats, cards, and people are editable. The **Index** tab can refresh 
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `CONTROLLER_SECRET` | _(empty)_ | Shared secret for `/controller` |
-| `GEMINI_API_KEY` / `GOOGLE_API_KEY` | _(empty)_ | Gemini key for the Ask EOS chat |
-| `CHAT_SEARCH_HEADED` | _(empty)_ | `1` opens a visible Chrome window for Google search |
+| `GEMINI_API_KEY` / `GOOGLE_API_KEY` | _(empty)_ | Optional Gemini rewrite of the Ask EOS answer |
+| `CHAT_SEARCH_HEADED` | _(empty)_ | `1` opens a visible Chrome window for Google AI Mode |
+| `CHAT_CHROME_PROFILE` | `data/chrome-profile` | Persistent Chrome profile (cookies / consent) |
 | `ADDR` | `:8080` / `:443` with TLS | Listen address |
 | `DATA_DIR` | `data` | SQLite + uploads (`data/eos.db`) |
 | `TLS_CERT` | _(empty)_ | Certificate PEM; enables HTTPS |
@@ -58,6 +59,7 @@ cmd/server/          HTTP(S) server
 internal/api/        Public + controller routes
 internal/store/      SQLite + FTS5 search
 internal/ingest/     Indico + eos-docs fetchers
+internal/googleai/   Chrome → Google Search → AI Mode
 web/public/          Public UI (embedded)
 web/controller/      Controller UI (embedded)
 ```

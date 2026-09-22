@@ -94,6 +94,16 @@ func Open(dbPath, mediaDir string) (*Store, error) {
 			return nil, err
 		}
 	}
+	if s.Setting("stat_io") == "" {
+		if err := s.SetSetting("stat_io", "1–2 TB/s"); err != nil {
+			db.Close()
+			return nil, err
+		}
+		if err := s.SetSetting("stat_io_label", "IO"); err != nil {
+			db.Close()
+			return nil, err
+		}
+	}
 	const tower = "https://monit-grafana.cern.ch/d/baff3c33-decb-4b91-a6bf-c0ba84bdcbe4/eos-user-monitoring?orgId=22&from=now-24h&to=now&timezone=browser&var-cluster=$__all&var-HTTP=$__all&var-GRIDFPT=$__all&var-XROOTD=$__all&var-FUSE=$__all"
 	if old := s.Setting("control_tower"); old == "" || strings.Contains(old, "filer-carbon") || strings.Contains(old, "eos-control-tower") {
 		if err := s.SetSetting("control_tower", tower); err != nil {

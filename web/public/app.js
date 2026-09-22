@@ -398,8 +398,50 @@ function stopTermType() {
   termTimer = 0;
 }
 
+function bindTermCopy() {
+  const term = document.querySelector("[data-copy-term]");
+  if (!term || term.dataset.copyBound) return;
+  term.dataset.copyBound = "1";
+  term.addEventListener("click", () => copyTermCommand(term));
+}
+
+async function copyTermCommand(term) {
+  if (!(await copyText(TERM_CLONE))) return;
+  term.classList.remove("is-copied");
+  void term.offsetWidth;
+  term.classList.add("is-copied");
+  window.clearTimeout(Number(term.dataset.copyTimer || 0));
+  term.dataset.copyTimer = String(window.setTimeout(() => {
+    term.classList.remove("is-copied");
+  }, 1600));
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (_) {}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  } catch (_) {
+    return false;
+  }
+}
+
 function startTermType() {
   stopTermType();
+  bindTermCopy();
   const el = document.querySelector("[data-term]");
   if (!el) return;
   if (prefersQuiet()) {
@@ -701,11 +743,15 @@ function hero(extra = "") {
       </div>
       <div class="hero-overlay"></div>
       <div class="hero-inner">
-        <p class="hero-term" aria-label="${esc(TERM_CLONE)}">
+        <button type="button" class="hero-term" data-copy-term title="Copy command" aria-label="Copy ${esc(TERM_CLONE)}">
           <span class="hero-term-prompt">$</span>
           <span class="hero-term-text" data-term></span>
           <span class="hero-term-caret" aria-hidden="true"></span>
-        </p>
+          <span class="hero-term-pop" aria-live="polite">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5.5 12.5 4.2 4.2 8.8-9.4"/></svg>
+            Copied
+          </span>
+        </button>
         <p class="kicker">${esc(setting("hero_kicker"))}</p>
         <div class="hero-title-row">
           <div class="hero-copy">
@@ -719,8 +765,10 @@ function hero(extra = "") {
               <a class="btn ghost" data-nav href="/search">Search talks</a>
             </div>
           </div>
-          <div class="orbit-frame">
-            <video class="hero-orbit" muted loop playsinline preload="none" aria-label="EOS orbit"></video>
+          <div class="orbit-slot">
+            <div class="orbit-frame">
+              <video class="hero-orbit" muted loop playsinline preload="none" aria-label="EOS orbit"></video>
+            </div>
           </div>
         </div>
         ${extra}
@@ -731,6 +779,7 @@ function hero(extra = "") {
 function stats(extra = "") {
   const items = [
     [setting("stat_volume"), setting("stat_volume_label")],
+    [setting("stat_io") || "1–2 TB/s", setting("stat_io_label") || "IO"],
     [setting("stat_disks"), setting("stat_disks_label")],
     [setting("stat_files"), setting("stat_files_label")],
     [setting("stat_clients"), setting("stat_clients_label")],
@@ -757,6 +806,7 @@ function cardIcon(id) {
     "s-box": `<svg viewBox="0 0 24 24" ${stroke}><path d="M4.4 8.4 12 4.6l7.6 3.8v7.2L12 19.4 4.4 15.6z"/><path d="M12 12.2 19.6 8.4M12 12.2V19.4M12 12.2 4.4 8.4"/></svg>`,
     "s-swan": `<svg viewBox="0 0 24 24" ${stroke}><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M8 9h8M8 12.5h8M8 16h5"/></svg>`,
     "s-cta": `<svg viewBox="0 0 24 24" ${stroke}><rect x="3.2" y="5.2" width="17.6" height="13.6" rx="2.2"/><circle cx="8.4" cy="12" r="2.6"/><circle cx="15.6" cy="12" r="2.6"/><path d="M11 12h2"/></svg>`,
+    "sup-forum": `<svg viewBox="0 0 24 24" ${stroke}><path d="M5 6.2h14v9.2H9.2L5 18.8z"/></svg>`,
   };
   const svg = icons[id];
   return svg ? `<span class="card-ico" aria-hidden="true">${svg}</span>` : "";
@@ -1287,6 +1337,13 @@ function community() {
       <div class="grid grid-3 team-grid">${ops}</div>
       <div class="section-head" style="margin-top:2rem"><h2>Collaborations</h2></div>
       ${cardGrid(cards("collab"), "grid-2")}
+      <div class="section-head" style="margin-top:2rem"><h2>Support</h2></div>
+      ${cardGrid([{
+        id: "sup-forum",
+        title: "Community Forum",
+        href: (setting("community") || "https://eos-community.web.cern.ch/").replace(/^http:/, "https:"),
+        body: "Discourse for EOS sites, operators, and users.",
+      }], "grid-2")}
       <form class="card" id="contact-form" style="margin-top:2rem;display:grid;gap:0.7rem">
         <h3>Write to the project</h3>
         <input name="name" required placeholder="Name" />
@@ -1569,6 +1626,30 @@ function setChatOpen(on, focus) {
   if (on && focus) panel.querySelector("textarea")?.focus();
 }
 
+function clearChat() {
+  window.clearTimeout(chatTypeTimer);
+  chatHistory = [];
+  const log = $("#eos-chat-log");
+  if (log) {
+    log.innerHTML = `<p class="eos-chat-hello">Ask about EOS, CERNBox, CTA, docs or workshops.</p>`;
+  }
+}
+
+function setChatLarge(on) {
+  const root = $("#eos-chat");
+  const grow = root?.querySelector("[data-chat-grow]");
+  if (!root) return;
+  root.classList.toggle("is-large", on);
+  if (grow) {
+    grow.setAttribute("aria-label", on ? "Shrink chat" : "Enlarge chat");
+    grow.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  if (on) {
+    chatPinned = true;
+    setChatOpen(true, false);
+  }
+}
+
 function appendChat(role, text) {
   const log = $("#eos-chat-log");
   if (!log) return null;
@@ -1677,7 +1758,15 @@ function bindChat() {
   });
   root.querySelector("[data-chat-close]")?.addEventListener("click", () => {
     chatPinned = false;
+    setChatLarge(false);
     setChatOpen(false, false);
+  });
+  root.querySelector("[data-chat-clear]")?.addEventListener("click", () => {
+    if (chatBusy) return;
+    clearChat();
+  });
+  root.querySelector("[data-chat-grow]")?.addEventListener("click", () => {
+    setChatLarge(!root.classList.contains("is-large"));
   });
   $("#eos-chat-form")?.addEventListener("submit", (e) => {
     e.preventDefault();

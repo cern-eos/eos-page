@@ -91,6 +91,7 @@ function renderHome() {
       </div>
       <div class="row">
         ${field("stat_volume", s.stat_volume, "Volume")}
+        ${field("stat_io", s.stat_io, "IO")}
         ${field("stat_disks", s.stat_disks, "Disks")}
         ${field("stat_files", s.stat_files, "Files")}
         ${field("stat_clients", s.stat_clients, "Clients")}

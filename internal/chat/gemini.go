@@ -92,8 +92,11 @@ func (c *Client) Ask(ctx context.Context, question, siteContext string, history 
 	if err != nil {
 		return Reply{}, err
 	}
-	webText, webSources, searchErr := GoogleSearch(ctx, searchQuery(q))
+	ai, webText, webSources, searchErr := liveSearch(ctx, q)
 	if c.api == nil {
+		if searchErr == nil && ai && strings.TrimSpace(webText) != "" {
+			return Reply{Text: webText, Sources: webSources}, nil
+		}
 		return fallbackReply(q, siteContext, webText, webSources, searchErr), nil
 	}
 	contents := make([]*genai.Content, 0, len(history)+1)
@@ -106,7 +109,11 @@ func (c *Client) Ask(ctx context.Context, question, siteContext string, history 
 	}
 	user := q
 	if searchErr == nil && webText != "" {
-		user = q + "\n\nGoogle search extract:\n" + webText
+		label := "Google search extract"
+		if ai {
+			label = "Google AI Mode answer"
+		}
+		user = q + "\n\n" + label + ":\n" + webText
 	}
 	contents = append(contents, genai.NewContentFromText(user, genai.RoleUser))
 
@@ -149,7 +156,7 @@ func systemPrompt(siteContext string, searchErr error) string {
 	var b strings.Builder
 	b.WriteString("You are the Ask EOS assistant on the EOS Open Storage website (CERN).\n")
 	b.WriteString("Answer questions about EOS disk storage, XRootD, QuarkDB, FST/MGM, eosxd, CERNBox, CTA, workshops, docs and operations.\n")
-	b.WriteString("Prefer facts from the Google search extract and the local catalogue. Cite URLs when they appear.\n")
+	b.WriteString("Prefer facts from the Google AI Mode answer (or search extract) and the local catalogue. Cite URLs when they appear.\n")
 	b.WriteString("Be concise. Prefer concrete commands, URLs and version names. If you are unsure, say so and point to https://eos-docs.web.cern.ch/diopside/ or eos-support@cern.ch.\n")
 	b.WriteString("Do not invent APIs, people or workshop dates. Refuse requests unrelated to EOS or storage.\n")
 	if searchErr != nil {

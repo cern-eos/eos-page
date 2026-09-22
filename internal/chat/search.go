@@ -10,12 +10,37 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/apeters/eospage/internal/googleai"
 	"github.com/chromedp/chromedp"
 )
 
 const maxSearchText = 8000
 
 var searchMu sync.Mutex
+
+func liveSearch(parent context.Context, question string) (ai bool, text string, sources []Source, err error) {
+	q := searchQuery(question)
+	result, err := googleai.GoogleAISearch(parent, q)
+	if err == nil && strings.TrimSpace(result.Answer) != "" {
+		return true, result.Answer, toChatSources(result.Sources), nil
+	}
+	text, sources, fallbackErr := GoogleSearch(parent, q)
+	if fallbackErr != nil {
+		if err != nil {
+			return false, "", nil, err
+		}
+		return false, "", nil, fallbackErr
+	}
+	return false, text, sources, nil
+}
+
+func toChatSources(in []googleai.Source) []Source {
+	out := make([]Source, 0, len(in))
+	for _, s := range in {
+		out = append(out, Source{Title: s.Title, URL: s.URL})
+	}
+	return out
+}
 
 func GoogleSearch(parent context.Context, query string) (string, []Source, error) {
 	query = strings.TrimSpace(query)
@@ -102,11 +127,16 @@ func searchSources(raw []map[string]string) []Source {
 	return out
 }
 
+const eosQuestionTag = "This question is related to CERN's EOS Storage System."
+
 func searchQuery(question string) string {
 	q := strings.TrimSpace(question)
-	low := strings.ToLower(q)
-	if !strings.Contains(low, "eos") && !strings.Contains(low, "cern") {
-		q += " EOS CERN storage"
+	if q == "" {
+		return q
 	}
-	return q
+	low := strings.ToLower(q)
+	if strings.Contains(low, "cern's eos storage system") || strings.Contains(low, "cerns eos storage system") {
+		return q
+	}
+	return q + " — " + eosQuestionTag
 }
