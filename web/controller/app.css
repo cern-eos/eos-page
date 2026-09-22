@@ -1,0 +1,43 @@
+:root {
+  --bg: #10141b;
+  --panel: #181e28;
+  --ink: #e8edf5;
+  --muted: #8e98ab;
+  --orange: #e2090d;
+  --line: rgba(232, 237, 245, 0.1);
+  --danger: #e08a7a;
+  --ok: #7dce9a;
+  --font: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); }
+[hidden] { display: none !important; }
+a { color: var(--orange); }
+button, input, select, textarea { font: inherit; color: inherit; }
+.gate { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; }
+.gate-card, .card { background: var(--panel); border: 1px solid var(--line); padding: 1.2rem; border-radius: 12px; }
+.gate-card { width: min(26rem, 100%); display: grid; gap: 0.7rem; }
+.brand { letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.75rem; color: var(--orange); margin: 0; }
+.lede, .muted { color: var(--muted); }
+.error { color: var(--danger); }
+.ok { color: var(--ok); }
+.bar {
+  display: flex; flex-wrap: wrap; gap: 0.8rem 1rem; align-items: center;
+  padding: 0.8rem 1rem; border-bottom: 1px solid var(--line);
+}
+.tabs { display: flex; flex-wrap: wrap; gap: 0.35rem; flex: 1; }
+.tab, button, .ghost {
+  appearance: none; border: 1px solid var(--line); background: transparent;
+  color: var(--muted); padding: 0.4rem 0.7rem; cursor: pointer; border-radius: 8px;
+}
+.tab.on, button[type="submit"], button.primary { background: var(--orange); color: #1a0b07; border-color: var(--orange); }
+.panel { padding: 1rem; width: min(1100px, 100%); margin: 0 auto; }
+.grid { display: grid; gap: 0.8rem; }
+label { display: grid; gap: 0.25rem; font-size: 0.78rem; color: var(--muted); }
+input, textarea, select { background: #0e1218; border: 1px solid var(--line); padding: 0.45rem 0.55rem; width: 100%; border-radius: 8px; }
+textarea { min-height: 5rem; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th, td { text-align: left; padding: 0.4rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+h1, h2 { font-weight: 500; }
+@media (max-width: 720px) { .row { grid-template-columns: 1fr; } }

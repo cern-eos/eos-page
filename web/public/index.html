@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EOS Open Storage</title>
+  <meta name="description" content="EOS is CERN's open-source storage system for LHC analysis, CERNBox, and CTA tape workflows." />
+  <link rel="icon" href="/static/media/eos-icon-white.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/app.css?v=leadchip" />
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/" data-nav>
+      <img class="logo" src="/static/media/eos-logo.png" alt="EOS" />
+      <em>Open Storage</em>
+    </a>
+    <button type="button" class="menu-toggle" data-menu="toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="nav" id="site-nav">
+      <a href="/about" data-nav>About</a>
+      <a href="/tech" data-nav>Tech</a>
+      <a href="/roadmap" data-nav>Roadmap</a>
+      <a href="/docs" data-nav>Docs</a>
+      <a href="/workshops" data-nav>Workshops</a>
+      <a href="/search" data-nav>Search talks</a>
+      <a href="/resources" data-nav>Resources</a>
+      <a href="/service" data-nav>Service</a>
+      <a href="/news" data-nav>News</a>
+      <a href="/community" data-nav>Community</a>
+    </nav>
+    <div class="repo-links">
+      <a class="repo-btn" id="repo-gitlab" href="https://gitlab.cern.ch/dss/eos" target="_blank" rel="noreferrer">
+        <img src="/static/media/gitlab-logo.svg" alt="" />
+        <span>GitLab</span>
+      </a>
+      <a class="repo-btn" id="repo-github" href="https://github.com/cern-eos/eos" target="_blank" rel="noreferrer">
+        <img src="/static/media/github-mark-white.svg" alt="" />
+        <span>GitHub</span>
+      </a>
+    </div>
+    <a class="cern-logo" href="https://home.cern" target="_blank" rel="noreferrer" title="CERN">
+      <img src="/static/media/cern-logo-white.svg" alt="CERN" />
+    </a>
+  </header>
+  <div class="page-stage">
+    <main id="app"></main>
+  </div>
+  <footer class="foot">
+    <div class="wrap foot-grid">
+      <div>
+        <a class="cern-logo foot-cern" href="https://home.cern" target="_blank" rel="noreferrer" title="CERN">
+          <img src="/static/media/cern-logo-white.svg" alt="CERN" />
+        </a>
+        <p class="brand-mini">EOS Open Storage</p>
+        <p class="muted" id="foot-address"></p>
+        <p><a id="foot-mail" href="mailto:eos-support@cern.ch">eos-support@cern.ch</a></p>
+      </div>
+      <form id="news-form" class="news">
+        <label for="news-email">EOS announcements</label>
+        <div class="news-row">
+          <input id="news-email" type="email" required autocomplete="email" placeholder="Email" />
+          <button type="submit">Subscribe</button>
+        </div>
+        <p id="news-msg" class="muted" hidden></p>
+      </form>
+      <p class="legal">© CERN · <a href="/" data-nav>Home</a></p>
+    </div>
+  </footer>
+  <script src="/static/app.js?v=leadchip"></script>
+</body>
+</html>

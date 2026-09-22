@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Controller · EOS page</title>
+  <link rel="stylesheet" href="/controller/static/app.css" />
+</head>
+<body>
+  <section id="gate" class="gate">
+    <form id="gate-form" class="gate-card">
+      <p class="brand">EOS Open Storage</p>
+      <h1>Homepage controller</h1>
+      <p class="lede">Edit copy, cards, news, and refresh the Indico / docs indexes.</p>
+      <label for="secret">Admin secret</label>
+      <input id="secret" type="password" required autocomplete="current-password" />
+      <button type="submit">Open</button>
+      <p id="gate-error" class="error" hidden></p>
+    </form>
+  </section>
+  <section id="dash" hidden>
+    <header class="bar">
+      <p class="brand">EOS · page</p>
+      <nav class="tabs">
+        <button type="button" class="tab on" data-tab="home">Home</button>
+        <button type="button" class="tab" data-tab="about">About</button>
+        <button type="button" class="tab" data-tab="tech">Tech</button>
+        <button type="button" class="tab" data-tab="news">News</button>
+        <button type="button" class="tab" data-tab="team">Team</button>
+        <button type="button" class="tab" data-tab="index">Index</button>
+        <button type="button" class="tab" data-tab="inbox">Inbox</button>
+      </nav>
+      <button type="button" id="btn-logout" class="ghost">Sign out</button>
+    </header>
+    <main id="panel" class="panel"></main>
+  </section>
+  <script src="/controller/static/app.js"></script>
+</body>
+</html>
