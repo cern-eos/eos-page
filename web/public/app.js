@@ -2088,6 +2088,7 @@ async function openDocsViewer(raw, push = true) {
       next.textContent = (data.next.title || "Next") + " →";
     }
     if (pager) pager.hidden = !(data.prev || data.next);
+    prepareDocsCodeBlocks(bodyEl);
     const hash = (() => { try { return new URL(href).hash; } catch (_) { return ""; } })();
     if (hash && bodyEl) {
       const id = decodeURIComponent(hash.replace(/^#/, ""));
@@ -2105,6 +2106,40 @@ async function openDocsViewer(raw, push = true) {
   } finally {
     docsBusy = false;
   }
+}
+
+function docsCodeTarget(target, body) {
+  if (!body?.contains(target)) return null;
+  const table = target.closest(".highlighttable");
+  if (table) return table.querySelector(".highlight") || table.querySelector("td.code pre");
+  const hi = target.closest(".highlight");
+  if (hi) return hi;
+  const pre = target.closest("pre");
+  if (pre && !pre.closest(".linenos, .linenodiv")) return pre;
+  return null;
+}
+
+function prepareDocsCodeBlocks(body) {
+  if (!body) return;
+  body.querySelectorAll(".highlight, pre").forEach((el) => {
+    if (el.closest(".linenos, .linenodiv")) return;
+    if (el.matches("pre") && el.closest(".highlight")) return;
+    el.classList.add("is-copyable");
+    el.setAttribute("title", "Click to copy");
+    el.setAttribute("role", "button");
+    el.setAttribute("tabindex", "0");
+  });
+}
+
+async function copyDocsCode(el) {
+  const block = el.closest(".highlight") || el.closest("pre") || el;
+  const pre = block.matches("pre") ? block : (block.querySelector("pre") || block);
+  const text = (pre.innerText || "").replace(/\u00a0/g, " ").replace(/\n$/, "");
+  if (!text.trim()) return;
+  if (!(await copyText(text))) return;
+  block.classList.add("is-copied");
+  window.clearTimeout(Number(block.dataset.copyTimer || 0));
+  block.dataset.copyTimer = String(window.setTimeout(() => block.classList.remove("is-copied"), 1400));
 }
 
 function bindDocsViewer() {
@@ -2125,6 +2160,12 @@ function bindDocsViewer() {
       }
       return;
     }
+    const code = docsCodeTarget(e.target, root.querySelector("[data-docs-body]"));
+    if (code) {
+      e.preventDefault();
+      copyDocsCode(code);
+      return;
+    }
     const a = e.target.closest("a");
     if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     const href = a.getAttribute("href") || "";
@@ -2142,6 +2183,13 @@ function bindDocsViewer() {
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && root.classList.contains("is-open")) closeDocsViewer();
+    if ((e.key === "Enter" || e.key === " ") && root.classList.contains("is-open")) {
+      const code = docsCodeTarget(e.target, root.querySelector("[data-docs-body]"));
+      if (code) {
+        e.preventDefault();
+        copyDocsCode(code);
+      }
+    }
   });
 }
 
