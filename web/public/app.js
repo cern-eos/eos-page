@@ -118,12 +118,12 @@ function fadeTo(swap) {
           pageBusy = false;
         };
         app.addEventListener("transitionend", afterIn);
-        window.setTimeout(afterIn, 420);
+        window.setTimeout(afterIn, 210);
       });
     });
   };
   app.addEventListener("transitionend", afterOut);
-  window.setTimeout(afterOut, 380);
+  window.setTimeout(afterOut, 190);
 }
 
 function diopsideFigure() {
@@ -879,6 +879,58 @@ function setNav() {
   document.querySelectorAll(".nav a").forEach((a) => {
     const href = a.getAttribute("href");
     a.classList.toggle("on", href === p || (href !== "/" && p.startsWith(href)));
+  });
+}
+
+function hoverNavEnabled() {
+  return window.matchMedia("(hover: hover) and (pointer: fine)").matches
+    && !window.matchMedia("(max-width: 860px)").matches;
+}
+
+function bindNavHover() {
+  const nav = document.querySelector(".nav");
+  if (!nav || nav.dataset.hoverBound) return;
+  nav.dataset.hoverBound = "1";
+  let timer = 0;
+  let pending = "";
+  const clear = () => {
+    window.clearTimeout(timer);
+    timer = 0;
+    pending = "";
+  };
+  const destOf = (a) => {
+    if (!a || a.target === "_blank") return "";
+    const href = a.getAttribute("href");
+    if (!href || /^(mailto:|tel:|#)/.test(href)) return "";
+    try {
+      const u = new URL(href, location.origin);
+      if (u.origin !== location.origin) return "";
+      if (/^\/(api|static|media|controller)(\/|$)/.test(u.pathname)) return "";
+      return u.pathname + u.search + u.hash;
+    } catch (_) {
+      return "";
+    }
+  };
+  nav.addEventListener("mouseover", (e) => {
+    if (!hoverNavEnabled()) return;
+    const a = e.target.closest("a");
+    if (!a || !nav.contains(a)) return;
+    if (e.relatedTarget && a.contains(e.relatedTarget)) return;
+    const next = destOf(a);
+    if (!next || samePlace(next)) return;
+    clear();
+    pending = next;
+    timer = window.setTimeout(() => {
+      const dest = pending;
+      clear();
+      if (dest && hoverNavEnabled() && !samePlace(dest)) go(dest);
+    }, 180);
+  });
+  nav.addEventListener("mouseout", (e) => {
+    const a = e.target.closest("a");
+    if (!a || !nav.contains(a)) return;
+    if (e.relatedTarget && a.contains(e.relatedTarget)) return;
+    if (destOf(a) === pending) clear();
   });
 }
 
@@ -2014,6 +2066,7 @@ async function load() {
   if (gh && setting("github")) gh.href = setting("github");
   bindChat();
   bindDocsViewer();
+  bindNavHover();
   render();
 }
 

@@ -148,7 +148,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 #app {
   min-height: 68vh;
-  transition: opacity 0.32s ease;
+  transition: opacity 0.16s ease;
 }
 #app.fade-out {
   opacity: 0;
