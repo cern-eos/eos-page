@@ -821,7 +821,10 @@ function about() {
 }
 
 const LEAD_KEYS = [
-  "erasure coding",
+  "energy-aware placement",
+  "policy-driven platform",
+  "disk, erasure coding and tape",
+  "data locality",
   "CERNBox",
   "Diopside",
   "QuarkDB",
@@ -1386,7 +1389,7 @@ function roadmap() {
       <p class="kicker">Development programme</p>
       <h2>${esc(p.title || "Roadmap")}</h2>
       <div class="prose">${paragraphs(lead)}</div>
-      <p class="roadmap-aim">${highlightLead("The direction is a single EOS that caches, places and archives by policy — disk, erasure coding and tape together — and that can exploit locality and energy on future CERN computing farms.")}</p>
+      <p class="roadmap-aim">${esc("The direction is a single EOS that caches, places and archives by policy — disk, erasure coding and tape together — and that can exploit locality and energy on future CERN computing farms.")}</p>
       ${roadmapSketch()}
       ${roadmapAreas().map((area) => `
         <section class="roadmap-area">
@@ -1550,6 +1553,144 @@ function render() {
   else kick();
 }
 
+let chatHistory = [];
+let chatBusy = false;
+let chatPinned = false;
+let chatLeaveTimer = 0;
+let chatTypeTimer = 0;
+
+function setChatOpen(on, focus) {
+  const root = $("#eos-chat");
+  const panel = $("#eos-chat-panel");
+  const tog = $("#eos-chat-toggle");
+  if (!root || !panel || !tog) return;
+  root.classList.toggle("is-open", on);
+  tog.setAttribute("aria-expanded", on ? "true" : "false");
+  if (on && focus) panel.querySelector("textarea")?.focus();
+}
+
+function appendChat(role, text) {
+  const log = $("#eos-chat-log");
+  if (!log) return null;
+  log.querySelector(".eos-chat-hello")?.remove();
+  const el = document.createElement("div");
+  el.className = "eos-chat-msg is-" + role;
+  el.textContent = text;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  return el;
+}
+
+function attachChatSources(el, sources) {
+  if (!el || !sources || !sources.length) return;
+  const box = document.createElement("p");
+  box.className = "eos-chat-sources";
+  sources.slice(0, 6).forEach((s) => {
+    const a = document.createElement("a");
+    a.href = s.url;
+    a.target = "_blank";
+    a.rel = "noreferrer";
+    a.textContent = s.title || s.url;
+    box.appendChild(a);
+  });
+  el.appendChild(box);
+}
+
+function typeChatAnswer(el, text, sources) {
+  window.clearTimeout(chatTypeTimer);
+  const log = $("#eos-chat-log");
+  const full = String(text || "");
+  if (prefersQuiet() || !full) {
+    el.textContent = full;
+    attachChatSources(el, sources);
+    if (log) log.scrollTop = log.scrollHeight;
+    return;
+  }
+  let i = 0;
+  const tick = () => {
+    i += 1;
+    el.textContent = full.slice(0, i);
+    if (log) log.scrollTop = log.scrollHeight;
+    if (i < full.length) {
+      chatTypeTimer = window.setTimeout(tick, i < 12 ? 18 : 11);
+      return;
+    }
+    attachChatSources(el, sources);
+  };
+  tick();
+}
+
+async function sendChat(form) {
+  if (chatBusy) return;
+  const input = form.querySelector("textarea");
+  const q = String(input?.value || "").trim();
+  if (!q) return;
+  input.value = "";
+  appendChat("user", q);
+  chatHistory.push({ role: "user", text: q });
+  chatBusy = true;
+  chatPinned = true;
+  form.querySelector("button").disabled = true;
+  const wait = appendChat("wait", "Looking that up…");
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: q, history: chatHistory.slice(0, -1).slice(-8) }),
+    });
+    const data = await res.json().catch(() => ({}));
+    wait?.remove();
+    if (!res.ok) {
+      appendChat("error", data.error || "Ask EOS is unavailable.");
+      return;
+    }
+    const bot = appendChat("bot", "");
+    typeChatAnswer(bot, data.text || "", data.sources);
+    chatHistory.push({ role: "assistant", text: data.text || "" });
+  } catch (err) {
+    wait?.remove();
+    appendChat("error", err.message || "Ask EOS is unavailable.");
+  } finally {
+    chatBusy = false;
+    form.querySelector("button").disabled = false;
+    input?.focus();
+  }
+}
+
+function bindChat() {
+  const root = $("#eos-chat");
+  if (!root || root.dataset.bound) return;
+  root.dataset.bound = "1";
+  fetch("/api/chat").catch(() => {});
+  root.addEventListener("pointerenter", () => {
+    window.clearTimeout(chatLeaveTimer);
+    setChatOpen(true, false);
+  });
+  root.addEventListener("pointerleave", () => {
+    window.clearTimeout(chatLeaveTimer);
+    if (chatPinned || chatBusy || root.querySelector("textarea") === document.activeElement) return;
+    chatLeaveTimer = window.setTimeout(() => setChatOpen(false, false), 280);
+  });
+  $("#eos-chat-toggle")?.addEventListener("click", () => {
+    chatPinned = !root.classList.contains("is-open") || !chatPinned;
+    setChatOpen(true, true);
+  });
+  root.querySelector("[data-chat-close]")?.addEventListener("click", () => {
+    chatPinned = false;
+    setChatOpen(false, false);
+  });
+  $("#eos-chat-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    sendChat(e.currentTarget);
+  });
+  $("#eos-chat-form textarea")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      e.currentTarget.form?.requestSubmit();
+    }
+  });
+}
+
 async function load() {
   const res = await fetch("/api/catalog");
   catalog = await res.json();
@@ -1561,6 +1702,7 @@ async function load() {
   const gh = $("#repo-github");
   if (gl && setting("gitlab")) gl.href = setting("gitlab");
   if (gh && setting("github")) gh.href = setting("github");
+  bindChat();
   render();
 }
 

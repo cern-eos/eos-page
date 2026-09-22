@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"io/fs"
 	"log"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/apeters/eospage/internal/api"
+	"github.com/apeters/eospage/internal/chat"
 	"github.com/apeters/eospage/internal/store"
 	"github.com/apeters/eospage/web"
 )
@@ -58,9 +60,23 @@ func main() {
 		}
 	}
 
+	geminiKey := strings.TrimSpace(os.Getenv("GEMINI_API_KEY"))
+	if geminiKey == "" {
+		geminiKey = strings.TrimSpace(os.Getenv("GOOGLE_API_KEY"))
+	}
+	ask, err := chat.New(context.Background(), geminiKey)
+	if err != nil {
+		log.Printf("warning: Ask EOS Gemini client: %v — answers will use Chrome Google search only", err)
+	} else if ask != nil && geminiKey != "" {
+		log.Printf("Ask EOS chat: Gemini %s with Chrome Google search", chat.Model)
+	} else {
+		log.Printf("Ask EOS chat: Chrome Google search")
+	}
+
 	srv := api.New(st, api.Options{
 		ControllerSecret: secret,
 		PublicBaseURL:    strings.TrimRight(strings.TrimSpace(os.Getenv("PUBLIC_BASE_URL")), "/"),
+		Chat:             ask,
 	}, publicFS, controllerFS)
 
 	scheme := "http"

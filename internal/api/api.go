@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/apeters/eospage/internal/chat"
 	"github.com/apeters/eospage/internal/store"
 )
 
@@ -20,12 +21,15 @@ const controllerCookie = "eos_controller"
 type Options struct {
 	ControllerSecret string
 	PublicBaseURL    string
+	Chat             *chat.Client
 }
 
 type Server struct {
 	Store            *store.Store
 	ControllerSecret string
 	PublicBaseURL    string
+	Chat             *chat.Client
+	chatLimit        *chatLimiter
 	PublicFS         fs.FS
 	ControllerFS     fs.FS
 }
@@ -35,6 +39,8 @@ func New(st *store.Store, opt Options, publicFS, controllerFS fs.FS) *Server {
 		Store:            st,
 		ControllerSecret: opt.ControllerSecret,
 		PublicBaseURL:    strings.TrimRight(opt.PublicBaseURL, "/"),
+		Chat:             opt.Chat,
+		chatLimit:        newChatLimiter(),
 		PublicFS:         publicFS,
 		ControllerFS:     controllerFS,
 	}
@@ -47,6 +53,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/search", s.handleSearch)
 	mux.HandleFunc("POST /api/newsletter", s.handleNewsletter)
 	mux.HandleFunc("POST /api/inbox", s.handleInbox)
+	mux.HandleFunc("GET /api/chat", s.handleChatStatus)
+	mux.HandleFunc("POST /api/chat", s.handleChat)
 
 	mux.HandleFunc("POST /api/controller/login", s.handleControllerLogin)
 	mux.HandleFunc("POST /api/controller/logout", s.handleControllerLogout)

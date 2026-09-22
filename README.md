@@ -31,6 +31,7 @@ go test ./...
 - All EOS workshops on Indico from 2018–2026 (2nd–10th), with slides and recordings
 - Full-text search over talks and the docs extract
 - Newsletter and contact form (stored for the controller)
+- Floating **Ask EOS** chat (Gemini 2.5 Flash + Chrome Google search)
 
 ## Controller
 
@@ -43,6 +44,8 @@ Hero copy, stats, cards, and people are editable. The **Index** tab can refresh 
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `CONTROLLER_SECRET` | _(empty)_ | Shared secret for `/controller` |
+| `GEMINI_API_KEY` / `GOOGLE_API_KEY` | _(empty)_ | Gemini key for the Ask EOS chat |
+| `CHAT_SEARCH_HEADED` | _(empty)_ | `1` opens a visible Chrome window for Google search |
 | `ADDR` | `:8080` / `:443` with TLS | Listen address |
 | `DATA_DIR` | `data` | SQLite + uploads (`data/eos.db`) |
 | `TLS_CERT` | _(empty)_ | Certificate PEM; enables HTTPS |
