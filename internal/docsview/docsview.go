@@ -144,13 +144,17 @@ func Parse(raw []byte, base *url.URL) (Page, error) {
 			title = t
 		}
 	}
+	plainDash := func(s string) string {
+		return strings.ReplaceAll(strings.ReplaceAll(s, " — ", " - "), "—", "-")
+	}
+	title = plainDash(title)
 	var buf bytes.Buffer
 	for c := main.FirstChild; c != nil; c = c.NextSibling {
 		if err := html.Render(&buf, c); err != nil {
 			return Page{}, err
 		}
 	}
-	page := Page{Title: title, URL: base.String(), HTML: buf.String()}
+	page := Page{Title: title, URL: base.String(), HTML: plainDash(buf.String())}
 	related := find(doc, func(n *html.Node) bool {
 		return n.Type == html.ElementNode && hasClass(n, "related")
 	})

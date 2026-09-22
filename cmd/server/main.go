@@ -66,7 +66,7 @@ func main() {
 	}
 	ask, err := chat.New(context.Background(), geminiKey)
 	if err != nil {
-		log.Printf("warning: Ask EOS Gemini client: %v — answers will use Chrome Google search only", err)
+		log.Printf("warning: Ask EOS Gemini client: %v - answers will use Chrome Google search only", err)
 	} else if ask != nil && geminiKey != "" {
 		log.Printf("Ask EOS chat: Gemini %s with live web search", chat.Model)
 	} else {

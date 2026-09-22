@@ -128,7 +128,7 @@ function fadeTo(swap) {
 
 function diopsideFigure() {
   return `
-    <figure class="diopside" title="Faceted Diopside, Madagascar — Didier Descouens, Wikimedia Commons, CC BY-SA 4.0">
+    <figure class="diopside" title="Faceted Diopside, Madagascar - Didier Descouens, Wikimedia Commons, CC BY-SA 4.0">
       <div class="diopside-rays" aria-hidden="true"></div>
       <div class="diopside-glow" aria-hidden="true"></div>
       <div class="diopside-stone">
@@ -237,7 +237,7 @@ function capacityChartMarkup() {
         <g class="eos-growth-marks"></g>
         <circle class="eos-growth-dot" r="4.6" cx="0" cy="0"></circle>
       </svg>
-      <p class="eos-growth-note">One point per year through 2025. Values with ~ are approximate. After 2025 the path is unknown — only the 2.5 EB arrival in 2030 is fixed.</p>
+      <p class="eos-growth-note">One point per year through 2025. Values with ~ are approximate. After 2025 the path is unknown - only the 2.5 EB arrival in 2030 is fixed.</p>
     </figure>`;
 }
 
@@ -1103,7 +1103,7 @@ function architectureFigure() {
           <span>CERNBox</span><span>Samba / CIFS</span><span>S3 / MinIO</span><span>SFTP</span><span>CTA tape</span>
         </div>
       </div>
-      <figcaption class="arch-cap">Three core services — MGM, FST and QuarkDB. Messaging is QuarkDB pub-sub, not a separate MQ. Clients open on the MGM; data I/O is redirected to FSTs.</figcaption>
+      <figcaption class="arch-cap">Three core services - MGM, FST and QuarkDB. Messaging is QuarkDB pub-sub, not a separate MQ. Clients open on the MGM; data I/O is redirected to FSTs.</figcaption>
     </figure>`;
 }
 
@@ -1120,12 +1120,12 @@ function tech() {
       <ol class="arch-flow">
         <li><b>1</b><div><strong>Open on the MGM</strong><span>Authenticate and resolve the path in the hierarchical namespace.</span></div></li>
         <li><b>2</b><div><strong>Redirect</strong><span>XRootD sends the client to an FST chosen by placement, GEO tags and policy.</span></div></li>
-        <li><b>3</b><div><strong>Read or write data</strong><span>I/O stays on the FST — replica or erasure-coded stripes, with checksums.</span></div></li>
+        <li><b>3</b><div><strong>Read or write data</strong><span>I/O stays on the FST - replica or erasure-coded stripes, with checksums.</span></div></li>
         <li><b>4</b><div><strong>Persist metadata</strong><span>The MGM write-back queue commits namespace changes to QuarkDB.</span></div></li>
       </ol>
       <div class="section-head">
         <h2>Core services</h2>
-        <p class="muted">MGM, FST and QuarkDB — pub-sub lives in QuarkDB — plus the clients that speak XRootD, HTTP and FUSE.</p>
+        <p class="muted">MGM, FST and QuarkDB - pub-sub lives in QuarkDB - plus the clients that speak XRootD, HTTP and FUSE.</p>
       </div>
       ${cardGrid(cards("component").filter((c) => c.id !== "c-mq"), "arch")}
       <div class="section-head" style="margin-top:2.4rem">
@@ -1141,17 +1141,17 @@ function tech() {
         <article class="card set-card">
           <p class="meta">Mapping</p>
           <h3>Virtual identities</h3>
-          <p>Each client is mapped, from its authentication method and vid rules, to a virtual identity — a uid/gid pair that owns files and directories. Roles can be attached so a person or service may act on behalf of everyone, or of a subset of identities.</p>
+          <p>Each client is mapped, from its authentication method and vid rules, to a virtual identity - a uid/gid pair that owns files and directories. Roles can be attached so a person or service may act on behalf of everyone, or of a subset of identities.</p>
         </article>
         <article class="card set-card">
           <p class="meta">Policies</p>
           <h3>How a file is stored</h3>
-          <p>Layout, checksums and placement can be set on a space, on an application, group or user, on a directory, or on a single URL. A directory can force erasure coding — for example <code>sys.forced.layout=raid6</code> with 12 stripes in an <code>erasure</code> space.</p>
+          <p>Layout, checksums and placement can be set on a space, on an application, group or user, on a directory, or on a single URL. A directory can force erasure coding - for example <code>sys.forced.layout=raid6</code> with 12 stripes in an <code>erasure</code> space.</p>
         </article>
         <article class="card set-card">
           <p class="meta">GEO</p>
           <h3>Placement close to the client</h3>
-          <p>GEO tags can be assigned to client IPs and to FST nodes. Placement policies match the two, so a file can be stored as close as possible to the reader — or kept apart for resilience.</p>
+          <p>GEO tags can be assigned to client IPs and to FST nodes. Placement policies match the two, so a file can be stored as close as possible to the reader - or kept apart for resilience.</p>
         </article>
       </div>
       <div class="section-head" style="margin-top:2.4rem">
@@ -1160,12 +1160,12 @@ function tech() {
       </div>
       <div class="micro-grid">
         <article class="set-card"><h3>Balancers</h3><p>Filesystem balancer inside a group, group balancer inside a space, and geo balancer across locations.</p></article>
-        <article class="set-card"><h3>Converter</h3><p>Queued jobs that change how a file is stored — for example from one replica to two-fold replication.</p></article>
+        <article class="set-card"><h3>Converter</h3><p>Queued jobs that change how a file is stored - for example from one replica to two-fold replication.</p></article>
         <article class="set-card"><h3>Lifecycle</h3><p>Automation for disk and node replacement: empty a filesystem that should leave production.</p></article>
         <article class="set-card"><h3>LRU engine</h3><p>Scans the namespace to apply clean-up or conversion policies, such as a scratch space that expires in 30 days.</p></article>
-        <article class="set-card"><h3>Inspector</h3><p>Accounting of how files are stored — how much of an instance is replicated versus erasure-coded.</p></article>
+        <article class="set-card"><h3>Inspector</h3><p>Accounting of how files are stored - how much of an instance is replicated versus erasure-coded.</p></article>
         <article class="set-card"><h3>Consistency</h3><p>Distributed check and repair of data and metadata inconsistencies.</p></article>
-        <article class="set-card"><h3>Workflow</h3><p>Event queue for external systems — typically CTA, when a new file should migrate to tape.</p></article>
+        <article class="set-card"><h3>Workflow</h3><p>Event queue for external systems - typically CTA, when a new file should migrate to tape.</p></article>
       </div>
       <p class="tech-docs"><a href="${esc(archDocs)}" target="_blank" rel="noreferrer">Read the Design &amp; Architecture chapter</a> in the <a href="${esc(docs)}" target="_blank" rel="noreferrer">Diopside documentation</a>.</p>
       <div style="margin-top:1.6rem">${cardGrid(cards("link"), "grid-3")}</div>
@@ -1207,7 +1207,7 @@ function workshops() {
     <div class="wrap">
       <p class="kicker">Community</p>
       <h2>EOS workshops</h2>
-      <p class="muted">${esc(catalog.index?.queryHelp || "")}. Search titles, abstracts, and speakers — then open slides or the CERN recording.</p>
+      <p class="muted">${esc(catalog.index?.queryHelp || "")}. Search titles, abstracts, and speakers - then open slides or the CERN recording.</p>
       <p><a class="btn" data-nav href="/search">Search presentations</a></p>
       ${rows ? `<div class="pub-table" style="margin-top:1.2rem">${rows}</div>` : `<p class="empty">No workshops indexed yet.</p>`}
     </div>`;
@@ -1292,7 +1292,7 @@ const publications = [
       { label: "CERN CDS", href: "https://cds.cern.ch/record/2758817" },
       { label: "EPJ", href: "https://www.epj-conferences.org/articles/epjconf/abs/2020/21/epjconf_chep2020_04008/epjconf_chep2020_04008.html" },
     ] },
-  { set: "eos", year: 2019, title: "Scaling the EOS namespace — new developments and performance optimizations",
+  { set: "eos", year: 2019, title: "Scaling the EOS namespace - new developments and performance optimizations",
     authors: "",
     venue: "EPJ Web of Conferences 214, 04019 (2019)",
     note: "Focuses on scaling the EOS namespace and the architecture that led to QuarkDB.",
@@ -1307,7 +1307,7 @@ const publications = [
       { label: "DOI", href: "https://doi.org/10.1051/epjconf/201921408025" },
       { label: "CERN", href: "https://repository.cern/legacy/record/2653012/files/" },
     ] },
-  { set: "eos", year: 2019, title: "EOS Open Storage — evolution of an ecosystem for scientific data repositories",
+  { set: "eos", year: 2019, title: "EOS Open Storage - evolution of an ecosystem for scientific data repositories",
     authors: "A.J. Peters, G. Bitzes, M.K. Simon, J. Makai, E.A. Sindrilaru",
     venue: "CHEP 2018",
     note: "The evolution of EOS from CERN’s original disk storage system toward a more general scientific data-storage platform.",
@@ -1424,7 +1424,7 @@ function resources() {
       <section class="pubs" id="publications">
         <div class="section-head">
           <h2>Publications</h2>
-          <p class="muted">Reverse-chronological papers on EOS at CERN — architecture, operations — and XRootD where it is part of the EOS data path.</p>
+          <p class="muted">Reverse-chronological papers on EOS at CERN - architecture, operations - and XRootD where it is part of the EOS data path.</p>
         </div>
         <h3 class="pub-set">EOS storage at CERN</h3>
         ${pubTable("eos")}
@@ -1536,19 +1536,19 @@ function roadmapAreas() {
   return [
     {
       title: "Storage architecture",
-      lede: "Flexible hierarchies inside EOS — cache, disk, erasure coding and tape as one platform.",
+      lede: "Flexible hierarchies inside EOS - cache, disk, erasure coding and tape as one platform.",
       items: [
-        { title: "Read-through spaces & tiering", body: "Move data between spaces by policy — SSD to HDD, replica to erasure coding, hot to cold — and treat one space as a transparent cache in front of another, with admission, eviction, pinning and prefetch." },
+        { title: "Read-through spaces & tiering", body: "Move data between spaces by policy - SSD to HDD, replica to erasure coding, hot to cold - and treat one space as a transparent cache in front of another, with admission, eviction, pinning and prefetch." },
         { title: "Native Mirage I/O", body: "Simulate file contents, checksums and the network path without touching disks, so protocol, gateway and scalability tests no longer depend on physical storage." },
         { title: "Native tape", body: "Investigate tape as an EOS storage tier rather than an external CTA buffer: lifecycle, archive and retrieve from EOS, with a path for today’s EOSCTA sites." },
-        { title: "Erasure coding in production", body: "File updates, small files, degraded reads, faster repair and online conversion — so EC can sit in a hot → replica → EC → tape lifecycle." },
+        { title: "Erasure coding in production", body: "File updates, small files, degraded reads, faster repair and online conversion - so EC can sit in a hot → replica → EC → tape lifecycle." },
       ],
     },
     {
       title: "High-performance access",
       lede: "Standards and transports for HPC, Kubernetes and GPU-heavy analysis.",
       items: [
-        { title: "Production NFSv4.1", body: "Locking, caching, identity mapping and monitoring where eosxd is hard to deploy — Kubernetes, HPC and sites that need a standard filesystem." },
+        { title: "Production NFSv4.1", body: "Locking, caching, identity mapping and monitoring where eosxd is hard to deploy - Kubernetes, HPC and sites that need a standard filesystem." },
         { title: "XrdHttp, GPU and RDMA", body: "Kernel clients, low-copy paths into GPU memory and RDMA, with common capability discovery for AI/ML and high-throughput analysis." },
         { title: "S3 as another EOS protocol", body: "Re-think the gateway model so object access shares more of EOS instead of a separate Versity-shaped stack." },
       ],
@@ -1557,7 +1557,7 @@ function roadmapAreas() {
       title: "Operations & reliability",
       lede: "One picture of the instance, and data movement that protects client traffic.",
       items: [
-        { title: "Controller UI", body: "A control plane for health, spaces, nodes, drain, quotas and alerts — safe workflows with RBAC, and later a fleet view across instances." },
+        { title: "Controller UI", body: "A control plane for health, spaces, nodes, drain, quotas and alerts - safe workflows with RBAC, and later a fleet view across instances." },
         { title: "Traffic shaping & draining", body: "Load-aware limits for drain, balance, convert and repair so foreground I/O stays protected and failing hardware can still be emptied first." },
         { title: "XRootD 6.3 monitoring", body: "Adopt the new XRootD telemetry, keep EOS-specific metrics beside it, and retire obsolete dashboards." },
       ],
@@ -1574,7 +1574,7 @@ function roadmapAreas() {
       title: "Platform & ecosystem",
       lede: "One identity model, a stable management API, and EOS that fits Kubernetes.",
       items: [
-        { title: "Common OIDC", body: "Push XrdSecOIDC into XRootD and use it for FUSE, HTTP and gateways — one token and identity story instead of a different one per access path." },
+        { title: "Common OIDC", body: "Push XrdSecOIDC into XRootD and use it for FUSE, HTTP and gateways - one token and identity story instead of a different one per access path." },
         { title: "Management API", body: "A documented API for the Controller UI, automation and monitoring, so tools stop scraping the CLI." },
         { title: "Cloud-native EOS", body: "Production CSI, container-friendly auth and simpler charts so smaller sites and Kubernetes workloads can consume EOS cleanly." },
       ],
@@ -1601,7 +1601,7 @@ function roadmapSketch() {
     <figure class="road-sketch">
       <figcaption>
         <strong>Sixteen years of history</strong>
-        <span>Major marks from the 2026 workshop timeline — then the work ahead.</span>
+        <span>Major marks from the 2026 workshop timeline - then the work ahead.</span>
       </figcaption>
       <ol class="road-line">
         ${marks.map((m, i) => `
@@ -1623,7 +1623,7 @@ function roadmap() {
       <p class="kicker">Development programme</p>
       <h2>${esc(p.title || "Roadmap")}</h2>
       <div class="prose">${paragraphs(lead)}</div>
-      <p class="roadmap-aim">${esc("The direction is a single EOS that caches, places and archives by policy — disk, erasure coding and tape together — and that can exploit locality and energy on future CERN computing farms.")}</p>
+      <p class="roadmap-aim">${esc("The direction is a single EOS that caches, places and archives by policy - disk, erasure coding and tape together - and that can exploit locality and energy on future CERN computing farms.")}</p>
       ${roadmapSketch()}
       ${roadmapAreas().map((area) => `
         <section class="roadmap-area">
@@ -1675,7 +1675,7 @@ function talkTable(talks) {
     const note = t.abstract || t.session || "";
     return `${yearHead}
       <article class="pub-row">
-        <span class="pub-year">${year || "—"}</span>
+        <span class="pub-year">${year || "-"}</span>
         <div class="pub-main">
           <h3>${t.url ? `<a href="${esc(t.url)}" target="_blank" rel="noreferrer">${esc(t.title)}</a>` : esc(t.title)}</h3>
           ${t.speakers ? `<p class="pub-authors">${esc(t.speakers)}</p>` : ""}
@@ -1757,7 +1757,7 @@ function bindPage() {
       const data = await res.json().catch(() => ({}));
       const msg = $("#contact-msg");
       msg.hidden = false;
-      msg.textContent = res.ok ? "Thanks — the message is in the controller inbox." : (data.error || "Could not send");
+      msg.textContent = res.ok ? "Thanks - the message is in the controller inbox." : (data.error || "Could not send");
       msg.className = res.ok ? "ok" : "muted";
     });
   }
@@ -2143,7 +2143,7 @@ $("#news-form")?.addEventListener("submit", async (e) => {
   const data = await res.json().catch(() => ({}));
   const msg = $("#news-msg");
   msg.hidden = false;
-  msg.textContent = res.ok ? "Subscribed — we will confirm from the controller." : (data.error || "Could not subscribe");
+  msg.textContent = res.ok ? "Subscribed - we will confirm from the controller." : (data.error || "Could not subscribe");
 });
 
 window.addEventListener("pageshow", (e) => {

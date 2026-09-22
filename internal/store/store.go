@@ -128,7 +128,42 @@ func Open(dbPath, mediaDir string) (*Store, error) {
 			return nil, err
 		}
 	}
+	if err := s.stripEmDashes(); err != nil {
+		db.Close()
+		return nil, err
+	}
 	return s, nil
+}
+
+func (s *Store) stripEmDashes() error {
+	stmts := []string{
+		`UPDATE settings SET value = REPLACE(REPLACE(value, ' — ', ' - '), '—', '-') WHERE value LIKE '%—%'`,
+		`UPDATE pages SET title = REPLACE(REPLACE(title, ' — ', ' - '), '—', '-'), body = REPLACE(REPLACE(body, ' — ', ' - '), '—', '-') WHERE title LIKE '%—%' OR body LIKE '%—%'`,
+		`UPDATE cards SET title = REPLACE(REPLACE(title, ' — ', ' - '), '—', '-'), body = REPLACE(REPLACE(body, ' — ', ' - '), '—', '-') WHERE title LIKE '%—%' OR body LIKE '%—%'`,
+		`UPDATE news SET title = REPLACE(REPLACE(title, ' — ', ' - '), '—', '-'), body = REPLACE(REPLACE(body, ' — ', ' - '), '—', '-') WHERE title LIKE '%—%' OR body LIKE '%—%'`,
+		`UPDATE people SET role = REPLACE(REPLACE(role, ' — ', ' - '), '—', '-') WHERE role LIKE '%—%'`,
+		`UPDATE workshops SET title = REPLACE(REPLACE(title, ' — ', ' - '), '—', '-'), description = REPLACE(REPLACE(description, ' — ', ' - '), '—', '-') WHERE title LIKE '%—%' OR description LIKE '%—%'`,
+		`UPDATE talks SET title = REPLACE(REPLACE(title, ' — ', ' - '), '—', '-'), abstract = REPLACE(REPLACE(abstract, ' — ', ' - '), '—', '-'), speakers = REPLACE(REPLACE(speakers, ' — ', ' - '), '—', '-'), session = REPLACE(REPLACE(session, ' — ', ' - '), '—', '-') WHERE title LIKE '%—%' OR abstract LIKE '%—%' OR speakers LIKE '%—%' OR session LIKE '%—%'`,
+		`UPDATE docs SET title = REPLACE(REPLACE(title, ' — ', ' - '), '—', '-'), section = REPLACE(REPLACE(section, ' — ', ' - '), '—', '-'), summary = REPLACE(REPLACE(summary, ' — ', ' - '), '—', '-'), body = REPLACE(REPLACE(body, ' — ', ' - '), '—', '-') WHERE title LIKE '%—%' OR section LIKE '%—%' OR summary LIKE '%—%' OR body LIKE '%—%'`,
+	}
+	for _, q := range stmts {
+		if _, err := s.db.Exec(q); err != nil {
+			return err
+		}
+	}
+	if _, err := s.db.Exec(`DELETE FROM talks_fts`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`INSERT INTO talks_fts(id, title, abstract, speakers, session, year) SELECT id, title, abstract, speakers, session, year FROM talks`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`DELETE FROM docs_fts`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`INSERT INTO docs_fts(id, title, section, summary, body) SELECT id, title, section, summary, body FROM docs`); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Store) Close() error { return s.db.Close() }

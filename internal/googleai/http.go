@@ -319,7 +319,7 @@ func parseDDGHTML(raw string) (AIResult, error) {
 		}
 		if i < len(snips) {
 			if snippet := strings.Join(strings.Fields(stripTags(snips[i][1])), " "); snippet != "" {
-				title = title + " — " + clipRunes(snippet, 180)
+				title = title + " - " + clipRunes(snippet, 180)
 			}
 		}
 		sources = append(sources, Source{Title: title, URL: href})
@@ -402,7 +402,7 @@ func parseGoogleHTML(raw string) (AIResult, error) {
 			b.WriteByte('\n')
 		}
 		b.WriteString(s.Title)
-		b.WriteString(" — ")
+		b.WriteString(" - ")
 		b.WriteString(s.URL)
 	}
 	return AIResult{Answer: b.String(), Sources: sources, IsAI: false}, nil

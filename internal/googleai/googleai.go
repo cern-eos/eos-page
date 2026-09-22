@@ -185,7 +185,7 @@ func extractSERP(ctx context.Context, query string) (AIResult, error) {
 		var b strings.Builder
 		for _, s := range sources {
 			b.WriteString(s.Title)
-			b.WriteString(" — ")
+			b.WriteString(" - ")
 			b.WriteString(s.URL)
 			b.WriteByte('\n')
 		}

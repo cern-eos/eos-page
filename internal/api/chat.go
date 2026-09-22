@@ -62,7 +62,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !s.chatLimit.allow(clientIP(r)) {
-		writeError(w, http.StatusTooManyRequests, "Too many questions — try again in a few minutes.")
+		writeError(w, http.StatusTooManyRequests, "Too many questions - try again in a few minutes.")
 		return
 	}
 	var body struct {
@@ -104,11 +104,11 @@ func (s *Server) chatSiteContext(q string) string {
 		b.WriteString("- Doc: ")
 		b.WriteString(clipRunes(d.Title, 80))
 		if d.URL != "" {
-			b.WriteString(" — ")
+			b.WriteString(" - ")
 			b.WriteString(d.URL)
 		}
 		if d.Summary != "" {
-			b.WriteString(" — ")
+			b.WriteString(" - ")
 			b.WriteString(clipRunes(d.Summary, 180))
 		}
 		b.WriteByte('\n')
@@ -125,7 +125,7 @@ func (s *Server) chatSiteContext(q string) string {
 			b.WriteByte(')')
 		}
 		if t.URL != "" {
-			b.WriteString(" — ")
+			b.WriteString(" - ")
 			b.WriteString(t.URL)
 		}
 		b.WriteByte('\n')
@@ -149,7 +149,7 @@ func publicChatError(msg string) string {
 	case strings.Contains(low, "too long"):
 		return "That question is too long."
 	case strings.Contains(low, "not configured"):
-		return "Ask EOS is starting up — try again in a moment."
+		return "Ask EOS is starting up - try again in a moment."
 	default:
 		return "Ask EOS could not answer just now. Try again, or write to eos-support@cern.ch."
 	}

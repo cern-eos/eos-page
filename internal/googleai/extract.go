@@ -117,7 +117,7 @@ const extractSERPJS = `(() => {
     add(h.innerText, a.href || '', extra);
     if (items.length >= 8) break;
   }
-  const lines = items.map((i) => i.title + (i.snippet ? ' — ' + i.snippet : ''));
+  const lines = items.map((i) => i.title + (i.snippet ? ' - ' + i.snippet : ''));
   return {
     answer: lines.join('\n'),
     sources: items,

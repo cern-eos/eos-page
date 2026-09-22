@@ -1,4 +1,4 @@
-# EOS Open Storage — public site
+# EOS Open Storage - public site
 
 A modern replacement for [eos.web.cern.ch](https://eos.web.cern.ch): one Go process, SQLite, and a locked controller.
 

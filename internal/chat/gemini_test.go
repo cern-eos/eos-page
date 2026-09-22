@@ -40,7 +40,7 @@ func TestNewWithoutKey(t *testing.T) {
 }
 
 func TestFallbackReply(t *testing.T) {
-	r := fallbackReply("QuarkDB", "- Doc: QuarkDB — persistency\n", "QuarkDB is the EOS metadata store.", []Source{{Title: "QuarkDB", URL: "https://example.test"}}, nil)
+	r := fallbackReply("QuarkDB", "- Doc: QuarkDB - persistency\n", "QuarkDB is the EOS metadata store.", []Source{{Title: "QuarkDB", URL: "https://example.test"}}, nil)
 	if !strings.Contains(r.Text, "QuarkDB") || len(r.Sources) != 1 {
 		t.Fatalf("got %#v", r)
 	}

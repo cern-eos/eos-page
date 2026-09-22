@@ -64,7 +64,7 @@ func CustomSearch(parent context.Context, query string) (AIResult, error) {
 			title = hostTitle(href)
 		}
 		if snip := strings.TrimSpace(it.Snippet); snip != "" {
-			title = title + " — " + clipRunes(snip, 180)
+			title = title + " - " + clipRunes(snip, 180)
 		}
 		sources = append(sources, Source{Title: title, URL: href})
 		if b.Len() > 0 {

@@ -79,7 +79,7 @@ func searchQuery(question string) string {
 	if strings.Contains(low, "cern's eos storage system") || strings.Contains(low, "cerns eos storage system") {
 		return q
 	}
-	return q + " — " + eosQuestionTag
+	return q + " - " + eosQuestionTag
 }
 
 func webQuery(question string) string {
