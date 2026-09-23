@@ -1574,7 +1574,7 @@ function workshops() {
     <div class="wrap">
       <p class="kicker">Community</p>
       <h2>EOS workshops</h2>
-      <p class="muted">${esc(catalog.index?.queryHelp || "")}. Search titles, abstracts, and speakers - then open slides or the CERN recording.</p>
+      <p class="muted">${esc(catalog.index?.queryHelp || "")}. Search titles, abstracts, and speakers - then open slidedecks or the CERN recording.</p>
       <p><a class="btn" data-nav href="/search">Search presentations</a></p>
       ${rows ? `<div class="pub-table" style="margin-top:1.2rem">${rows}</div>` : `<p class="empty">No workshops indexed yet.</p>`}
     </div>`;
@@ -2475,8 +2475,12 @@ async function load() {
   mail.href = "mailto:" + setting("contact_email");
   mail.textContent = setting("contact_email");
   const gl = $("#repo-gitlab");
+  const ci = $("#repo-ci");
+  const jira = $("#repo-jira");
   const gh = $("#repo-github");
   if (gl && setting("gitlab")) gl.href = setting("gitlab");
+  if (ci && setting("ci")) ci.href = setting("ci");
+  if (jira && setting("jira")) jira.href = setting("jira");
   if (gh && setting("github")) gh.href = setting("github");
   bindChat();
   bindDocsViewer();

@@ -232,6 +232,6 @@ func (s *Store) IndexStats() map[string]any {
 		"slides":     slides,
 		"recordings": recs,
 		"docs":       docs,
-		"queryHelp":  fmt.Sprintf("%d talks · %d slides · %d recordings · %d doc sections", talks, slides, recs, docs),
+		"queryHelp":  fmt.Sprintf("%d talks · %d slidedecks · %d recordings · %d doc sections", talks, slides, recs, docs),
 	}
 }

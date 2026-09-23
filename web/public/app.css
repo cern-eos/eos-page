@@ -122,10 +122,18 @@ button, input, select, textarea { font: inherit; color: inherit; }
   border-color: rgba(255,255,255,0.55);
   color: #fff !important;
 }
-.repo-btn img {
+.repo-btn img,
+.repo-btn svg {
   display: block;
   width: 1.15rem;
   height: 1.15rem;
+}
+.repo-btn svg {
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .menu-toggle {
   display: none;
@@ -1528,6 +1536,14 @@ h3 { font-size: 1.15rem; margin: 0 0 0.4rem; font-weight: 600; }
   .arch-draw .arch-hit-bar:hover > rect:first-of-type {
     stroke: #fff8f0;
     stroke-width: 3px;
+  }
+  .arch-flow li {
+    cursor: pointer;
+    transition: border-color 0.14s ease, box-shadow 0.14s ease;
+  }
+  .arch-flow li:hover {
+    border-color: #e65c00;
+    box-shadow: 0 0 0 1.8px #e65c00;
   }
 }
 .arch-cap {
