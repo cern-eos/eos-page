@@ -116,7 +116,7 @@ func (c *Client) askOpenAI(ctx context.Context, question, siteContext string, hi
 	for _, m := range ClipHistory(history) {
 		msgs = append(msgs, openaiMessage{Role: m.Role, Content: m.Text})
 	}
-	msgs = append(msgs, openaiMessage{Role: "user", Content: question})
+	msgs = append(msgs, openaiMessage{Role: "user", Content: frameUserQuestion(question)})
 
 	var sources []Source
 	seen := map[string]bool{}

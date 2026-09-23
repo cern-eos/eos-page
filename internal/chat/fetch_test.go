@@ -22,14 +22,12 @@ func TestParseAllowedDocURL(t *testing.T) {
 	}
 }
 
-func TestSystemPromptRejectsOffTopic(t *testing.T) {
+func TestSystemPromptCERNDiskStorage(t *testing.T) {
 	p := systemPromptOpenAI("", "")
 	for _, want := range []string{
-		"always answer these",
-		"What is EOS used for",
 		"CERN disk storage",
-		"CTA",
-		"XRootD",
+		"what EOS is and what it is used for",
+		"do not refuse ordinary EOS questions",
 		"eos-docs.web.cern.ch",
 		"xrootd.org",
 		"cta.web.cern.ch",
@@ -38,5 +36,15 @@ func TestSystemPromptRejectsOffTopic(t *testing.T) {
 		if !contains(p, want) {
 			t.Fatalf("missing %q", want)
 		}
+	}
+	if contains(p, "Out of scope") || contains(p, "one-sentence refusal") {
+		t.Fatal("prompt still uses hard refuse language")
+	}
+}
+
+func TestFrameUserQuestion(t *testing.T) {
+	got := frameUserQuestion("What is EOS used for ?")
+	if !contains(got, "CERN EOS disk storage") || !contains(got, "What is EOS used for ?") {
+		t.Fatalf("got %q", got)
 	}
 }
