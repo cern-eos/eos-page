@@ -17,6 +17,7 @@ import (
 )
 
 func main() {
+	loadDotEnv()
 	dataDir := env("DATA_DIR", "data")
 	secret := os.Getenv("CONTROLLER_SECRET")
 	if secret == "" {
@@ -82,7 +83,7 @@ func main() {
 	} else if ask != nil && geminiKey != "" {
 		log.Printf("Ask EOS chat: Gemini %s with live web search", chat.Model)
 	} else {
-		log.Printf("Ask EOS chat: live web search")
+		log.Printf("Ask EOS chat: live web search (OPENAI_API_KEY is not set)")
 	}
 
 	srv := api.New(st, api.Options{
