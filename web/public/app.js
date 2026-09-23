@@ -1,4 +1,4 @@
-let catalog = { settings: {}, pages: [], cards: [], news: [], people: [], workshops: [], docs: [], years: [], index: {} };
+let catalog = { settings: {}, pages: [], cards: [], news: [], people: [], workshops: [], docs: [], years: [], contributors: [], index: {} };
 
 const $ = (sel, root = document) => root.querySelector(sel);
 
@@ -126,9 +126,9 @@ function fadeTo(swap) {
   window.setTimeout(afterOut, 190);
 }
 
-function diopsideFigure() {
+function diopsideFigure(extraClass) {
   return `
-    <figure class="diopside" title="Faceted Diopside, Madagascar - Didier Descouens, Wikimedia Commons, CC BY-SA 4.0">
+    <figure class="diopside${extraClass ? ` ${extraClass}` : ""}" title="Faceted Diopside, Madagascar - Didier Descouens, Wikimedia Commons, CC BY-SA 4.0">
       <div class="diopside-rays" aria-hidden="true"></div>
       <div class="diopside-glow" aria-hidden="true"></div>
       <div class="diopside-stone">
@@ -200,7 +200,7 @@ function capacityChartMarkup() {
         <span>Raw disk at CERN</span>
         <strong aria-live="polite"><em data-growth-year>2010</em><i data-growth-pb>~5 PB</i></strong>
       </figcaption>
-      <svg class="eos-growth-svg" viewBox="0 0 720 240" role="img" aria-label="EOS raw capacity at CERN from about 5 PB in 2010 to a 2.5 EB target in 2030. After 2025 the path is an open quantum-like band that only pins the 2030 arrival.">
+      <svg class="eos-growth-svg" viewBox="0 0 720 240" role="img" aria-label="Evolution of raw disk storage space since 2010. The evolution after 2026 is not clear, only the target size for 2030 is defined.">
         <defs>
           <linearGradient id="growth-fill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#e65c00" stop-opacity="0.4"/>
@@ -237,7 +237,7 @@ function capacityChartMarkup() {
         <g class="eos-growth-marks"></g>
         <circle class="eos-growth-dot" r="4.6" cx="0" cy="0"></circle>
       </svg>
-      <p class="eos-growth-note">One point per year through 2025. Values with ~ are approximate. After 2025 the path is unknown - only the 2.5 EB arrival in 2030 is fixed.</p>
+      <p class="eos-growth-note">Evolution of raw disk storage space since 2010. The evolution after 2026 is not clear, only the target size for 2030 is defined.</p>
     </figure>`;
 }
 
@@ -966,7 +966,7 @@ function startTitleSpray() {
 
 function setNav() {
   const p = path();
-  document.querySelectorAll(".nav a, .nav-home").forEach((a) => {
+  document.querySelectorAll(".nav a, .nav-home, .nav-wall").forEach((a) => {
     const href = a.getAttribute("href");
     a.classList.toggle("on", href === p || (href !== "/" && p.startsWith(href)));
   });
@@ -2047,8 +2047,89 @@ function view() {
     case "/service": return service();
     case "/news": return news();
     case "/community": return community();
+    case "/wall": return wall();
     default: return notFound();
   }
+}
+
+const WALL_RANKS = [
+  { min: 5000, key: "platinum", label: "Platinum", shine: true },
+  { min: 1000, key: "gold", label: "Gold", shine: true },
+  { min: 500, key: "silver", label: "Silver", shine: true },
+  { min: 200, key: "bronze", label: "Bronze", shine: true },
+  { min: 0, key: "iron", label: "Iron", shine: false },
+];
+
+function isRootContributor(p) {
+  const name = String(p?.name || "").trim().toLowerCase();
+  const email = String(p?.email || "").trim().toLowerCase();
+  return name === "root" || email.startsWith("root@");
+}
+
+function wallRank(commits) {
+  const n = Number(commits) || 0;
+  return WALL_RANKS.find((t) => n >= t.min) || WALL_RANKS[WALL_RANKS.length - 1];
+}
+
+function wallPeople() {
+  return (catalog.contributors || [])
+    .filter((p) => !isRootContributor(p))
+    .map((p) => {
+      const rank = wallRank(p.commits);
+      return { ...p, rank: rank.key, band: rank.label, shine: rank.shine, commits: Number(p.commits) || 0 };
+    })
+    .sort((a, b) => {
+      const ia = WALL_RANKS.findIndex((r) => r.key === a.rank);
+      const ib = WALL_RANKS.findIndex((r) => r.key === b.rank);
+      return ia - ib || b.commits - a.commits || String(a.name).localeCompare(String(b.name));
+    });
+}
+
+function wall() {
+  const people = wallPeople();
+  const plaques = people.map((p, i) => `
+    <article class="wall-plaque is-${p.rank}${p.shine ? " is-shine" : ""}${i === 0 ? " is-first" : ""}">
+      ${i === 0 ? diopsideFigure("wall-diopside") : ""}
+      <span class="wall-rank">${i + 1}</span>
+      <strong>${esc(p.name)}</strong>
+      <em>${p.commits.toLocaleString("en-US")} ${p.commits === 1 ? "commit" : "commits"}</em>
+      <span class="wall-band">${esc(p.band)}</span>
+    </article>`).join("");
+  return `
+    <div class="wall-page">
+      <div class="wrap wall-wrap">
+        <p class="kicker">Contributors</p>
+        <h2>Wall of Fame</h2>
+        <p class="wall-lede">Everyone who has committed to the EOS repository. We are grateful for all your contributions!</p>
+        <div class="wall-grid">${plaques || `<p class="muted">The wall is still being built.</p>`}</div>
+      </div>
+    </div>`;
+}
+
+let wallShineTimer = 0;
+
+function stopWallShine() {
+  window.clearTimeout(wallShineTimer);
+  wallShineTimer = 0;
+  document.querySelectorAll(".wall-plaque.is-flashing").forEach((el) => el.classList.remove("is-flashing"));
+}
+
+function startWallShine() {
+  stopWallShine();
+  const plaques = [...document.querySelectorAll(".wall-plaque.is-shine")];
+  if (!plaques.length || prefersQuiet()) return;
+  let i = 0;
+  const sweep = 880;
+  const gap = 220;
+  const tick = () => {
+    plaques.forEach((el) => el.classList.remove("is-flashing"));
+    const el = plaques[i % plaques.length];
+    void el.offsetWidth;
+    el.classList.add("is-flashing");
+    i += 1;
+    wallShineTimer = window.setTimeout(tick, sweep + gap);
+  };
+  wallShineTimer = window.setTimeout(tick, 360);
 }
 
 function commitWhen(iso) {
@@ -2270,12 +2351,15 @@ function render() {
   stopLogoSpin();
   stopCollision();
   stopOrbitAlign();
+  stopWallShine();
   setNav();
-  document.title = path() === "/" ? "EOS Open Storage" : `EOS · ${path().slice(1)}`;
+  document.title = path() === "/" ? "EOS Open Storage" : (path() === "/wall" ? "EOS · Wall of Fame" : `EOS · ${path().slice(1)}`);
+  document.body.classList.toggle("is-wall", path() === "/wall");
   $("#app").innerHTML = view();
   bindPage();
   document.querySelector(".top")?.classList.remove("is-menu");
   if (location.hash) requestAnimationFrame(scrollToHash);
+  if (path() === "/wall") startWallShine();
   if (path() === "/" || path() === "/about") startAboutHighlight();
   if (path() !== "/") return;
   startTermType();
@@ -2667,6 +2751,15 @@ function bindChat() {
 async function load() {
   const res = await fetch("/api/catalog");
   catalog = await res.json();
+  if (!(catalog.contributors || []).length) {
+    try {
+      const extra = await fetch("/static/contributors.json");
+      const data = await extra.json();
+      catalog.contributors = data.contributors || [];
+    } catch (_) {
+      catalog.contributors = [];
+    }
+  }
   $("#foot-address").textContent = setting("address");
   const mail = $("#foot-mail");
   mail.href = "mailto:" + setting("contact_email");

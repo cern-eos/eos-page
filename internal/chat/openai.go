@@ -14,7 +14,7 @@ import (
 
 const (
 	defaultOpenAIModel = "gpt-4o-mini"
-	openAIURL          = "https://api.openai.com/v1/chat/completions"
+	openAIResponsesURL = "https://api.openai.com/v1/responses"
 	maxToolRounds      = 4
 )
 
@@ -26,78 +26,118 @@ var openaiHTTP = &http.Client{
 	},
 }
 
-type openaiReq struct {
-	Model       string          `json:"model"`
-	Messages    []openaiMessage `json:"messages"`
-	Tools       []openaiTool    `json:"tools,omitempty"`
-	ToolChoice  string          `json:"tool_choice,omitempty"`
-	Temperature float64         `json:"temperature"`
-	MaxTokens   int             `json:"max_tokens"`
+type responsesReq struct {
+	Model            string          `json:"model"`
+	Instructions     string          `json:"instructions,omitempty"`
+	Input            []responsesItem `json:"input"`
+	Tools            []responsesTool `json:"tools,omitempty"`
+	ToolChoice       string          `json:"tool_choice,omitempty"`
+	Include          []string        `json:"include,omitempty"`
+	Temperature      *float64        `json:"temperature,omitempty"`
+	MaxOutputTokens  int             `json:"max_output_tokens,omitempty"`
+	PreviousResponse string          `json:"previous_response_id,omitempty"`
+	Reasoning        *struct {
+		Effort string `json:"effort"`
+	} `json:"reasoning,omitempty"`
 }
 
-type openaiMessage struct {
-	Role       string           `json:"role"`
-	Content    string           `json:"content,omitempty"`
-	ToolCalls  []openaiToolCall `json:"tool_calls,omitempty"`
-	ToolCallID string           `json:"tool_call_id,omitempty"`
+type responsesTool struct {
+	Type        string          `json:"type"`
+	Name        string          `json:"name,omitempty"`
+	Description string          `json:"description,omitempty"`
+	Parameters  json.RawMessage `json:"parameters,omitempty"`
+	Strict      *bool           `json:"strict,omitempty"`
 }
 
-type openaiTool struct {
-	Type     string             `json:"type"`
-	Function openaiToolFunction `json:"function"`
+type responsesItem struct {
+	Type      string `json:"type,omitempty"`
+	Role      string `json:"role,omitempty"`
+	Content   string `json:"content,omitempty"`
+	ID        string `json:"id,omitempty"`
+	CallID    string `json:"call_id,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Arguments string `json:"arguments,omitempty"`
+	Output    string `json:"output,omitempty"`
 }
 
-type openaiToolFunction struct {
-	Name        string          `json:"name"`
-	Description string          `json:"description"`
-	Parameters  json.RawMessage `json:"parameters"`
+type responsesAction struct {
+	Type    string            `json:"type,omitempty"`
+	Query   string            `json:"query,omitempty"`
+	Queries []string          `json:"queries,omitempty"`
+	Sources []responsesSource `json:"sources,omitempty"`
 }
 
-type openaiToolCall struct {
-	ID       string `json:"id"`
-	Type     string `json:"type"`
-	Function struct {
-		Name      string `json:"name"`
-		Arguments string `json:"arguments"`
-	} `json:"function"`
+type responsesSource struct {
+	URL   string `json:"url"`
+	Title string `json:"title,omitempty"`
 }
 
-type openaiResp struct {
+type responsesContent struct {
+	Type        string                `json:"type"`
+	Text        string                `json:"text,omitempty"`
+	Annotations []responsesAnnotation `json:"annotations,omitempty"`
+}
+
+type responsesAnnotation struct {
+	Type        string `json:"type"`
+	URL         string `json:"url,omitempty"`
+	Title       string `json:"title,omitempty"`
+	URLCitation *struct {
+		URL   string `json:"url"`
+		Title string `json:"title,omitempty"`
+	} `json:"url_citation,omitempty"`
+}
+
+type responsesResp struct {
+	ID    string `json:"id"`
 	Error *struct {
 		Message string `json:"message"`
 	} `json:"error"`
-	Choices []struct {
-		Message openaiMessage `json:"message"`
-	} `json:"choices"`
+	Output []responsesOutputItem `json:"output"`
 }
 
-func openAITools() []openaiTool {
-	return []openaiTool{
+type responsesOutputItem struct {
+	Type      string             `json:"type"`
+	ID        string             `json:"id,omitempty"`
+	CallID    string             `json:"call_id,omitempty"`
+	Name      string             `json:"name,omitempty"`
+	Arguments string             `json:"arguments,omitempty"`
+	Role      string             `json:"role,omitempty"`
+	Status    string             `json:"status,omitempty"`
+	Action    *responsesAction   `json:"action,omitempty"`
+	Content   []responsesContent `json:"content,omitempty"`
+}
+
+func openAITools() []responsesTool {
+	strict := false
+	return []responsesTool{
+		{Type: "web_search"},
 		{
-			Type: "function",
-			Function: openaiToolFunction{
-				Name:        "search_docs",
-				Description: "Search EOS, XRootD, or CTA documentation sites and return titles with URLs.",
-				Parameters:  json.RawMessage(`{"type":"object","properties":{"query":{"type":"string"},"site":{"type":"string","enum":["all","eos-docs","xrootd","cta"]}},"required":["query"]}`),
-			},
+			Type:        "function",
+			Name:        "search_docs",
+			Description: "Search EOS, XRootD, or CTA documentation sites and return titles with URLs.",
+			Parameters:  json.RawMessage(`{"type":"object","properties":{"query":{"type":"string"},"site":{"type":"string","enum":["all","eos-docs","xrootd","cta"]}},"required":["query"]}`),
+			Strict:      &strict,
 		},
 		{
-			Type: "function",
-			Function: openaiToolFunction{
-				Name:        "fetch_doc",
-				Description: "Fetch one allowed documentation page and return it as formatted Markdown (headings, lists, code).",
-				Parameters:  json.RawMessage(`{"type":"object","properties":{"url":{"type":"string"}},"required":["url"]}`),
-			},
+			Type:        "function",
+			Name:        "fetch_doc",
+			Description: "Fetch one allowed documentation page and return it as formatted Markdown (headings, lists, code).",
+			Parameters:  json.RawMessage(`{"type":"object","properties":{"url":{"type":"string"}},"required":["url"]}`),
+			Strict:      &strict,
 		},
 		{
-			Type: "function",
-			Function: openaiToolFunction{
-				Name:        "search_ops_docs",
-				Description: "Search the EOS operator documentation (all_docs.md) and return matching Markdown sections.",
-				Parameters:  json.RawMessage(`{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}`),
-			},
+			Type:        "function",
+			Name:        "search_ops_docs",
+			Description: "Search the EOS operator documentation (all_docs.md) and return matching Markdown sections.",
+			Parameters:  json.RawMessage(`{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}`),
+			Strict:      &strict,
 		},
 	}
+}
+
+func isGPT5(model string) bool {
+	return strings.Contains(strings.ToLower(model), "gpt-5")
 }
 
 func (c *Client) askOpenAI(ctx context.Context, question, siteContext string, history []Message) (Reply, error) {
@@ -112,11 +152,12 @@ func (c *Client) askOpenAI(ctx context.Context, question, siteContext string, hi
 	if c.ops != nil {
 		ops = c.ops.FormatHits(question, 2)
 	}
-	msgs := []openaiMessage{{Role: "system", Content: systemPromptOpenAI(siteContext, ops)}}
+
+	var input []responsesItem
 	for _, m := range ClipHistory(history) {
-		msgs = append(msgs, openaiMessage{Role: m.Role, Content: m.Text})
+		input = append(input, responsesItem{Type: "message", Role: m.Role, Content: m.Text})
 	}
-	msgs = append(msgs, openaiMessage{Role: "user", Content: frameUserQuestion(question)})
+	input = append(input, responsesItem{Type: "message", Role: "user", Content: frameUserQuestion(question)})
 
 	var sources []Source
 	seen := map[string]bool{}
@@ -130,41 +171,127 @@ func (c *Client) askOpenAI(ctx context.Context, question, siteContext string, hi
 		}
 	}
 
+	var prevID string
 	for round := 0; round <= maxToolRounds; round++ {
-		raw, err := c.completeOpenAI(ctx, openaiReq{
-			Model:       model,
-			Messages:    msgs,
-			Tools:       openAITools(),
-			ToolChoice:  "auto",
-			Temperature: 0.2,
-			MaxTokens:   1400,
-		})
+		req := responsesReq{
+			Model:            model,
+			Instructions:     systemPromptOpenAI(siteContext, ops),
+			Input:            input,
+			Tools:            openAITools(),
+			ToolChoice:       "auto",
+			Include:          []string{"web_search_call.action.sources"},
+			MaxOutputTokens:  2200,
+			PreviousResponse: prevID,
+		}
+		if isGPT5(model) {
+			req.Reasoning = &struct {
+				Effort string `json:"effort"`
+			}{Effort: "low"}
+		} else {
+			temp := 0.2
+			req.Temperature = &temp
+		}
+
+		raw, err := c.completeResponses(ctx, req)
 		if err != nil {
 			return Reply{}, err
 		}
-		if len(raw.Choices) == 0 {
-			return Reply{}, fmt.Errorf("empty openai response")
-		}
-		msg := raw.Choices[0].Message
-		if len(msg.ToolCalls) == 0 {
-			text := strings.TrimSpace(msg.Content)
-			if text == "" {
+		text, extra, calls := parseResponsesOutput(raw)
+		addSources(extra)
+		if len(calls) == 0 {
+			if strings.TrimSpace(text) == "" {
 				return Reply{}, fmt.Errorf("empty openai answer")
 			}
 			return Reply{Text: text, Sources: sources}, nil
 		}
-		msgs = append(msgs, msg)
-		for _, call := range msg.ToolCalls {
-			result, extra := c.runTool(ctx, call.Function.Name, call.Function.Arguments)
-			addSources(extra)
-			msgs = append(msgs, openaiMessage{
-				Role:       "tool",
-				ToolCallID: call.ID,
-				Content:    result,
+
+		prevID = raw.ID
+		input = input[:0]
+		for _, call := range calls {
+			result, extraSrc := c.runTool(ctx, call.Name, call.Arguments)
+			addSources(extraSrc)
+			input = append(input, responsesItem{
+				Type:   "function_call_output",
+				CallID: call.ID,
+				Output: result,
 			})
 		}
 	}
 	return Reply{}, fmt.Errorf("openai tool loop exceeded")
+}
+
+func parseResponsesOutput(raw responsesResp) (text string, sources []Source, calls []openaiToolCall) {
+	var b strings.Builder
+	seen := map[string]bool{}
+	add := func(title, url string) {
+		url = strings.TrimSpace(url)
+		if url == "" || seen[url] {
+			return
+		}
+		seen[url] = true
+		if strings.TrimSpace(title) == "" {
+			title = url
+		}
+		sources = append(sources, Source{Title: title, URL: url})
+	}
+
+	for _, item := range raw.Output {
+		switch item.Type {
+		case "web_search_call":
+			if item.Action != nil {
+				q := strings.TrimSpace(item.Action.Query)
+				if q == "" && len(item.Action.Queries) > 0 {
+					q = strings.Join(item.Action.Queries, "; ")
+				}
+				if q != "" {
+					log.Printf("ask eos: model web_search %q", q)
+				}
+				for _, s := range item.Action.Sources {
+					add(s.Title, s.URL)
+				}
+			}
+		case "function_call":
+			id := item.CallID
+			if id == "" {
+				id = item.ID
+			}
+			calls = append(calls, openaiToolCall{
+				ID:        id,
+				Name:      item.Name,
+				Arguments: item.Arguments,
+			})
+		case "message":
+			for _, part := range item.Content {
+				if part.Type == "output_text" || part.Type == "text" {
+					if strings.TrimSpace(part.Text) != "" {
+						if b.Len() > 0 {
+							b.WriteByte('\n')
+						}
+						b.WriteString(part.Text)
+					}
+				}
+				for _, a := range part.Annotations {
+					url, title := a.URL, a.Title
+					if a.URLCitation != nil {
+						if url == "" {
+							url = a.URLCitation.URL
+						}
+						if title == "" {
+							title = a.URLCitation.Title
+						}
+					}
+					add(title, url)
+				}
+			}
+		}
+	}
+	return strings.TrimSpace(b.String()), sources, calls
+}
+
+type openaiToolCall struct {
+	ID        string
+	Name      string
+	Arguments string
 }
 
 func (c *Client) runTool(ctx context.Context, name, argsJSON string) (string, []Source) {
@@ -214,35 +341,35 @@ func extractDocTitle(formatted string) string {
 	return "Documentation"
 }
 
-func (c *Client) completeOpenAI(ctx context.Context, req openaiReq) (openaiResp, error) {
+func (c *Client) completeResponses(ctx context.Context, req responsesReq) (responsesResp, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
-		return openaiResp{}, err
+		return responsesResp{}, err
 	}
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, openAIURL, bytes.NewReader(body))
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, openAIResponsesURL, bytes.NewReader(body))
 	if err != nil {
-		return openaiResp{}, err
+		return responsesResp{}, err
 	}
 	httpReq.Header.Set("Authorization", "Bearer "+c.openaiKey)
 	httpReq.Header.Set("Content-Type", "application/json")
 	res, err := openaiHTTP.Do(httpReq)
 	if err != nil {
-		return openaiResp{}, err
+		return responsesResp{}, err
 	}
 	defer res.Body.Close()
 	raw, err := io.ReadAll(io.LimitReader(res.Body, 2<<20))
 	if err != nil {
-		return openaiResp{}, err
+		return responsesResp{}, err
 	}
-	var out openaiResp
+	var out responsesResp
 	if err := json.Unmarshal(raw, &out); err != nil {
-		return openaiResp{}, fmt.Errorf("openai decode: %w", err)
+		return responsesResp{}, fmt.Errorf("openai decode: %w", err)
 	}
 	if out.Error != nil && out.Error.Message != "" {
-		return openaiResp{}, fmt.Errorf("openai: %s", out.Error.Message)
+		return responsesResp{}, fmt.Errorf("openai: %s", out.Error.Message)
 	}
 	if res.StatusCode >= 300 {
-		return openaiResp{}, fmt.Errorf("openai HTTP %d", res.StatusCode)
+		return responsesResp{}, fmt.Errorf("openai HTTP %d", res.StatusCode)
 	}
 	return out, nil
 }

@@ -99,11 +99,12 @@ func (s *Server) chatSiteContext(q string) string {
 	if s.Store == nil {
 		return ""
 	}
+	var b strings.Builder
+	b.WriteString(s.chatPublishedFigures())
 	res, err := s.Store.Search(q, "workshop-docs", 0, 4)
 	if err != nil {
-		return ""
+		return b.String()
 	}
-	var b strings.Builder
 	for i, d := range res.Docs {
 		if i >= 3 {
 			break
@@ -137,6 +138,33 @@ func (s *Server) chatSiteContext(q string) string {
 		}
 		b.WriteByte('\n')
 	}
+	return b.String()
+}
+
+func (s *Server) chatPublishedFigures() string {
+	if s.Store == nil {
+		return ""
+	}
+	pairs := [][2]string{
+		{"Storage volume at CERN", s.Store.Setting("stat_volume")},
+		{"IO", s.Store.Setting("stat_io")},
+		{"Hard disks", s.Store.Setting("stat_disks")},
+		{"Files", s.Store.Setting("stat_files")},
+		{"Clients", s.Store.Setting("stat_clients")},
+	}
+	var b strings.Builder
+	b.WriteString("Published CERN EOS figures from this website (prefer these over older manuals):\n")
+	for _, p := range pairs {
+		if strings.TrimSpace(p[1]) == "" {
+			continue
+		}
+		b.WriteString("- ")
+		b.WriteString(p[0])
+		b.WriteString(": ")
+		b.WriteString(p[1])
+		b.WriteByte('\n')
+	}
+	b.WriteByte('\n')
 	return b.String()
 }
 

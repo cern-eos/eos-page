@@ -121,7 +121,7 @@ func workshopTalksCard() Card {
 	return Card{
 		ID: "r-search", Kind: "resource", Sort: 2, Visible: true, Title: "Workshop talks",
 		Href: "/search?kind=workshop",
-		Body: "Search every EOS workshop contribution since 2018: slides, recordings, and abstracts.",
+		Body: "Search every EOS workshop contribution since 2017: slides, recordings, and abstracts.",
 	}
 }
 

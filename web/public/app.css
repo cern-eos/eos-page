@@ -231,6 +231,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
   overflow: visible;
   background: var(--bg);
 }
+body.is-wall,
+body.is-wall .page-stage {
+  background: #000;
+}
 #app {
   min-height: 68vh;
   transition: opacity 0.16s ease;
@@ -2703,3 +2707,217 @@ body.is-docs-open { overflow: hidden; }
   margin: 0 0 0.3rem;
 }
 .docs-viewer-body img { max-width: 100%; height: auto; margin: 0.8rem 0; }
+
+.nav-wall.on {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: #e6c35c;
+  color: #f4d36a !important;
+}
+.wall-page {
+  min-height: 68vh;
+  color: #f4f4f4;
+  background: #000;
+}
+.wall-wrap { padding-top: 2.4rem; }
+.wall-page .kicker { color: var(--orange); }
+.wall-page h2 {
+  color: #fff;
+  margin-bottom: 0.45rem;
+}
+.wall-lede {
+  max-width: 42rem;
+  margin: 0 0 1.6rem;
+  color: #b3b3b3;
+}
+.wall-lede code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  color: #f4f4f4;
+}
+.wall-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0.85rem;
+  align-items: stretch;
+}
+.wall-plaque {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.16rem;
+  min-height: 5.8rem;
+  padding: 0.95rem 0.75rem 0.8rem;
+  text-align: center;
+  color: #2a1c05;
+  border-radius: 3px;
+  background-color: var(--bar-mid);
+  background-image: var(--metal);
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.wall-plaque strong,
+.wall-plaque em,
+.wall-plaque .wall-band,
+.wall-plaque .wall-rank {
+  position: relative;
+  z-index: 1;
+}
+.wall-plaque strong {
+  font-size: 1.15rem;
+  line-height: 1.25;
+  font-weight: 650;
+}
+.wall-plaque em {
+  font-style: normal;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.wall-band {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.wall-rank {
+  position: absolute;
+  top: 0.32rem;
+  left: 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+.wall-plaque.is-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.5) 48%, transparent 64%);
+  transform: translateX(-130%);
+  pointer-events: none;
+}
+.wall-plaque.is-flashing::after {
+  animation: wall-shine 0.88s ease-in-out;
+}
+@keyframes wall-shine {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(130%); }
+}
+.wall-plaque.is-first {
+  z-index: 3;
+}
+.wall-diopside {
+  --gem-h: 2.15rem;
+  --gem-w: calc(var(--gem-h) * 519 / 920);
+  position: absolute;
+  left: 1.55rem;
+  top: 0.55rem;
+  width: var(--gem-w);
+  height: var(--gem-h);
+  margin: 0;
+  transform: none;
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+.wall-diopside .diopside-rays {
+  width: 520%;
+  height: 520%;
+  filter: blur(0.35px) brightness(1.35) saturate(1.25);
+}
+.wall-plaque.is-first strong,
+.wall-plaque.is-first em,
+.wall-plaque.is-first .wall-band,
+.wall-plaque.is-first .wall-rank {
+  z-index: 3;
+}
+.wall-plaque.is-platinum {
+  --metal: url("/static/media/metal-platinum.png?v=grain");
+  --bar-mid: #d6dce4;
+  grid-column: span 6;
+  min-height: 11.4rem;
+  color: #1a222c;
+  border: 1px solid #e8eef4;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.7),
+    inset 0 -10px 16px rgba(40,50,65,0.18),
+    0 14px 26px rgba(0,0,0,0.5);
+}
+.wall-plaque.is-platinum strong { font-size: 1.95rem; }
+.wall-plaque.is-gold {
+  --metal: url("/static/media/metal-gold.png?v=grain");
+  --bar-mid: #d6b02e;
+  grid-column: span 4;
+  min-height: 9.6rem;
+  color: #2a1c05;
+  border: 1px solid #e6c85a;
+  box-shadow:
+    inset 0 2px 0 rgba(255,248,210,0.45),
+    inset 0 -10px 16px rgba(90,55,0,0.18),
+    0 14px 26px rgba(0,0,0,0.5);
+}
+.wall-plaque.is-gold strong { font-size: 1.55rem; }
+.wall-plaque.is-silver {
+  --metal: url("/static/media/metal-silver.png?v=grain");
+  --bar-mid: #b0b4ba;
+  grid-column: span 3;
+  min-height: 8.4rem;
+  color: #1a1d22;
+  border: 1px solid #c8ccd2;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.45),
+    inset 0 -10px 16px rgba(30,35,42,0.18),
+    0 12px 22px rgba(0,0,0,0.42);
+}
+.wall-plaque.is-silver strong { font-size: 1.35rem; }
+.wall-plaque.is-bronze {
+  --metal: url("/static/media/metal-bronze.png?v=grain");
+  --bar-mid: #c49448;
+  grid-column: span 3;
+  min-height: 7.8rem;
+  color: #2a1806;
+  border: 1px solid #d4b06a;
+  box-shadow:
+    inset 0 2px 0 rgba(255,230,190,0.35),
+    inset 0 -10px 16px rgba(70,40,8,0.18),
+    0 12px 22px rgba(0,0,0,0.42);
+}
+.wall-plaque.is-bronze strong { font-size: 1.28rem; }
+.wall-plaque.is-iron {
+  --metal: url("/static/media/metal-iron.png?v=grain");
+  --bar-mid: #2a2c30;
+  grid-column: span 2;
+  min-height: 6.6rem;
+  color: #f3f4f6;
+  border: 1px solid #3a3d42;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    inset 0 -10px 14px rgba(0,0,0,0.35),
+    0 8px 16px rgba(0,0,0,0.4);
+}
+.wall-plaque.is-iron strong,
+.wall-plaque.is-iron em,
+.wall-plaque.is-iron .wall-band,
+.wall-plaque.is-iron .wall-rank { color: #f3f4f6; }
+@media (max-width: 860px) {
+  .wall-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .wall-plaque.is-platinum { grid-column: span 6; }
+  .wall-plaque.is-gold { grid-column: span 3; }
+  .wall-plaque.is-silver,
+  .wall-plaque.is-bronze { grid-column: span 3; }
+  .wall-plaque.is-iron { grid-column: span 2; }
+}
+@media (max-width: 640px) {
+  .wall-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wall-plaque.is-platinum,
+  .wall-plaque.is-gold { grid-column: span 2; }
+  .wall-plaque.is-silver,
+  .wall-plaque.is-bronze,
+  .wall-plaque.is-iron { grid-column: span 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wall-plaque.is-shine::after,
+  .wall-plaque.is-flashing::after { animation: none; display: none; }
+}

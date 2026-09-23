@@ -17,7 +17,7 @@ const defaultUA = "eos-page/1.0 (+https://eos.web.cern.ch)"
 
 var DefaultEventIDs = []string{
 	"1622471", "1483930", "1353101", "1227241", "1103358",
-	"985953", "862873", "775181", "656157",
+	"985953", "862873", "775181", "656157", "591485",
 }
 
 type indicoExport struct {
@@ -180,7 +180,7 @@ func fetchEvent(client *http.Client, id string) (store.Workshop, []store.Talk, e
 }
 
 func editionFor(year int) int {
-	if year >= 2018 && year <= 2030 {
+	if year >= 2017 && year <= 2030 {
 		return year - 2016
 	}
 	return 0

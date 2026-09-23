@@ -80,7 +80,7 @@ func (s *Store) seedIfEmpty() error {
 		"control_tower":      "https://monit-grafana.cern.ch/d/baff3c33-decb-4b91-a6bf-c0ba84bdcbe4/eos-user-monitoring?orgId=22&from=now-24h&to=now&timezone=browser&var-cluster=$__all&var-HTTP=$__all&var-GRIDFPT=$__all&var-XROOTD=$__all&var-FUSE=$__all",
 		"presentations_url":  "/search?kind=external",
 		"publications_url":   "https://cernbox.cern.ch/index.php/s/Kl0hxpeA5bFQ4Ho?path=%2Fpublications",
-		"indico_event_ids":   "1622471,1483930,1353101,1227241,1103358,985953,862873,775181,656157",
+		"indico_event_ids":   "1622471,1483930,1353101,1227241,1103358,985953,862873,775181,656157,591485",
 		"docs_base":          "https://eos-docs.web.cern.ch/diopside/",
 	}
 	for k, v := range settings {
@@ -205,6 +205,41 @@ func (s *Store) LoadSeedIndex() error {
 		payload.Docs[i].Sort = i
 	}
 	return s.ReplaceDocs(payload.Docs)
+}
+
+func (s *Store) ensureFirstWorkshop() error {
+	const id = "591485"
+	if ids := s.Setting("indico_event_ids"); ids != "" && !strings.Contains(ids, id) {
+		if err := s.SetSetting("indico_event_ids", ids+","+id); err != nil {
+			return err
+		}
+	}
+	var payload seedFile
+	if err := json.Unmarshal(seedBytes(), &payload); err != nil {
+		return err
+	}
+	for _, w := range payload.Workshops {
+		if w.ID != id {
+			continue
+		}
+		if err := s.UpsertWorkshop(Workshop{
+			ID: w.ID, Title: w.Title, Year: w.Year, Edition: w.Edition,
+			Start: w.Start, End: w.End, Location: w.Location, Room: w.Room,
+			Kind: w.Kind, URL: w.URL, Description: w.Description,
+			Sort: 3000 - w.Year, Visible: true,
+		}); err != nil {
+			return err
+		}
+	}
+	for _, t := range payload.Talks {
+		if t.EventID != id {
+			continue
+		}
+		if err := s.UpsertTalk(t); err != nil {
+			return err
+		}
+	}
+	return s.UpsertCard(workshopTalksCard())
 }
 
 const roadmapPageBody = "The EOS development programme covers production improvements, architectural evolution and selected R&D. The aim is a policy-driven platform that caches, places and archives across disk, erasure coding and tape - and that can use data locality and energy-aware placement on future CERN computing infrastructures."

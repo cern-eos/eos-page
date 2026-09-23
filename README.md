@@ -70,7 +70,7 @@ go test ./...
 
 ### Workshops
 
-- All EOS workshops on Indico from 2018–2026 (2nd–10th), with dates, venue, and Indico links
+- All EOS workshops on Indico from 2017–2026 (1st–10th), with dates, venue, and Indico links
 - Jump to the talks search
 
 ### Search talks
@@ -120,7 +120,7 @@ Hero copy, stats, cards, and people are editable. The **Index** tab can refresh 
 | --- | --- | --- |
 | `CONTROLLER_SECRET` | _(empty)_ | Shared secret for `/controller` |
 | `OPENAI_API_KEY` | _(empty)_ | Ask EOS talks to OpenAI (`gpt-4o-mini` by default) |
-| `OPENAI_MODEL` | `gpt-4o-mini` | Chat Completions model (`gpt-4o-mini`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5`, …) |
+| `OPENAI_MODEL` | `gpt-4o-mini` | Responses API model with built-in web_search (`gpt-4o-mini`, `gpt-4o`, `gpt-4.1`, `gpt-5-mini`, `gpt-5`, …) |
 | `GEMINI_API_KEY` / `GOOGLE_API_KEY` | _(empty)_ | Optional Gemini fallback if OpenAI is unset |
 | `CHAT_SEARCH_HEADED` | _(empty)_ | `1` opens a visible Chrome window for Google AI Mode |
 | `CHAT_SEARCH_CHROME` | _(empty)_ | `1` also tries headless Chrome Google (often captcha-blocked) |

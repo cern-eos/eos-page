@@ -15,6 +15,7 @@ import (
 const commitRefresh = 45 * time.Second
 
 func (s *Server) StartCommitSync() {
+	go s.refreshGitContributors(context.Background())
 	go func() {
 		ctx := context.Background()
 		if err := s.refreshCommits(ctx, true); err != nil {
@@ -86,4 +87,21 @@ func (s *Server) handleCommits(w http.ResponseWriter, r *http.Request) {
 		"total":     s.Store.CommitCount(),
 		"commits":   commits,
 	})
+}
+
+func (s *Server) refreshGitContributors(ctx context.Context) {
+	dir := ingest.FindEOSGitDir()
+	if dir == "" {
+		return
+	}
+	people, err := ingest.FetchGitShortlog(ctx, dir)
+	if err != nil {
+		log.Printf("wall of fame: git shortlog failed: %v", err)
+		return
+	}
+	if err := s.Store.ReplaceGitContributors(people); err != nil {
+		log.Printf("wall of fame: store failed: %v", err)
+		return
+	}
+	log.Printf("wall of fame: loaded %d contributors from git shortlog -sne --all (%s)", len(people), dir)
 }

@@ -44,16 +44,18 @@ func (s *Server) handleCatalog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	years, _ := s.Store.WorkshopYears()
+	contributors, _ := s.Store.ListGitContributors()
 	writeJSON(w, http.StatusOK, map[string]any{
-		"settings":  settings,
-		"pages":     pages,
-		"cards":     cards,
-		"news":      news,
-		"people":    people,
-		"workshops": workshops,
-		"docs":      docs,
-		"years":     years,
-		"index":     s.Store.IndexStats(),
+		"settings":     settings,
+		"pages":        pages,
+		"cards":        cards,
+		"news":         news,
+		"people":       people,
+		"workshops":    workshops,
+		"docs":         docs,
+		"years":        years,
+		"contributors": contributors,
+		"index":        s.Store.IndexStats(),
 	})
 }
 

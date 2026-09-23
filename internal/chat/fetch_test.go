@@ -34,6 +34,8 @@ func TestSystemPromptCERNDiskStorage(t *testing.T) {
 		"xrootd.org",
 		"cta.web.cern.ch",
 		"structured Markdown",
+		"prefer the published figures",
+		"web_search",
 	} {
 		if !contains(p, want) {
 			t.Fatalf("missing %q", want)

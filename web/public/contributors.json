@@ -1,0 +1,459 @@
+{
+  "contributors": [
+    {
+      "commits": 9442,
+      "name": "Elvin Alin Sindrilaru",
+      "email": "elvin.alin.sindrilaru@cern.ch"
+    },
+    {
+      "commits": 9238,
+      "name": "Andreas Joachim Peters",
+      "email": "andreas.joachim.peters@cern.ch"
+    },
+    {
+      "commits": 2042,
+      "name": "Abhishek Lekshmanan",
+      "email": "abhishek.lekshmanan@cern.ch"
+    },
+    {
+      "commits": 1777,
+      "name": "Georgios Bitzes",
+      "email": "georgios.bitzes@cern.ch"
+    },
+    {
+      "commits": 1298,
+      "name": "Cedric Caffy",
+      "email": "cedric.caffy@cern.ch"
+    },
+    {
+      "commits": 1085,
+      "name": "Mihai Patrascoiu",
+      "email": "mihai.patrascoiu@cern.ch"
+    },
+    {
+      "commits": 747,
+      "name": "Jozsef Makai",
+      "email": "jozsef.makai@cern.ch"
+    },
+    {
+      "commits": 710,
+      "name": "Geoffray Adde",
+      "email": "geoffray.adde@cern.ch"
+    },
+    {
+      "commits": 588,
+      "name": "Luis Antonio Obis Aparicio",
+      "email": "luis.antonio.obis@gmail.com"
+    },
+    {
+      "commits": 564,
+      "name": "Gianmaria Del Monte",
+      "email": "gianmaria.del.monte@cern.ch"
+    },
+    {
+      "commits": 502,
+      "name": "Fabio Luchetti",
+      "email": "fabio.luchetti@cern.ch"
+    },
+    {
+      "commits": 309,
+      "name": "Guilherme Amadio",
+      "email": "amadio@cern.ch"
+    },
+    {
+      "commits": 284,
+      "name": "Andreas Stoeve",
+      "email": "andreas.stoeve@cern.ch"
+    },
+    {
+      "commits": 215,
+      "name": "Steven Murray",
+      "email": "Steven.Murray@cern.ch"
+    },
+    {
+      "commits": 191,
+      "name": "Manuel Reis",
+      "email": "manuel.b.reis@cern.ch"
+    },
+    {
+      "commits": 188,
+      "name": "Octavian-Mihai Matei",
+      "email": "octavian-mihai.matei@cern.ch"
+    },
+    {
+      "commits": 186,
+      "name": "Lukasz Janyst",
+      "email": "ljanyst@cern.ch"
+    },
+    {
+      "commits": 158,
+      "name": "David Smith",
+      "email": "david.smith@cern.ch"
+    },
+    {
+      "commits": 150,
+      "name": "Joao Afonso",
+      "email": "joao.afonso@cern.ch"
+    },
+    {
+      "commits": 147,
+      "name": "Joaquim Rocha",
+      "email": "joaquim.rocha@cern.ch"
+    },
+    {
+      "commits": 146,
+      "name": "Andrea Manzi",
+      "email": "andrea.manzi@cern.ch"
+    },
+    {
+      "commits": 113,
+      "name": "Paul Lensing",
+      "email": "paul.lensing@cern.ch"
+    },
+    {
+      "commits": 92,
+      "name": "Yanar ilkay",
+      "email": "Ilkay.yanar71@proton.me"
+    },
+    {
+      "commits": 84,
+      "name": "David Smith",
+      "email": "David.Smith@cern.ch"
+    },
+    {
+      "commits": 70,
+      "name": "Elvin Sindrilaru",
+      "email": "esindrl@cern.ch"
+    },
+    {
+      "commits": 67,
+      "name": "Justin Salmon",
+      "email": "jsalmon@cern.ch"
+    },
+    {
+      "commits": 67,
+      "name": "Konstantina Skovola",
+      "email": "konstantina.skovola@cern.ch"
+    },
+    {
+      "commits": 59,
+      "name": "Rainer Toebbicke",
+      "email": "tobbicke@mail.cern.ch"
+    },
+    {
+      "commits": 52,
+      "name": "Michael Davis",
+      "email": "michael.davis@cern.ch"
+    },
+    {
+      "commits": 50,
+      "name": "Jaroslav Guenther",
+      "email": "jaroslav.guenther@cern.ch"
+    },
+    {
+      "commits": 48,
+      "name": "Jan Iven",
+      "email": "jan.iven@cern.ch"
+    },
+    {
+      "commits": 46,
+      "name": "Ryan Taylor",
+      "email": "rptaylor@uvic.ca"
+    },
+    {
+      "commits": 44,
+      "name": "Michal Kamil Simon",
+      "email": "michal.simon@cern.ch"
+    },
+    {
+      "commits": 32,
+      "name": "Branko Blagojevic",
+      "email": "branko.blagojevic@comtrade.com"
+    },
+    {
+      "commits": 30,
+      "name": "Kane Bruce",
+      "email": "kane.bruce@cern.ch"
+    },
+    {
+      "commits": 24,
+      "name": "Erich Birngruber",
+      "email": "erich.birngruber@gmi.oeaw.ac.at"
+    },
+    {
+      "commits": 22,
+      "name": "Andreea Prigoreanu",
+      "email": "andreea.prigoreanu@cern.ch"
+    },
+    {
+      "commits": 18,
+      "name": "Niels Alexander Buegel",
+      "email": "niels.alexander.bugel@cern.ch"
+    },
+    {
+      "commits": 17,
+      "name": "Herve Rousseau",
+      "email": "herve.rousseau@cern.ch"
+    },
+    {
+      "commits": 16,
+      "name": "Joseph Timothy Foley",
+      "email": "foley@ru.is"
+    },
+    {
+      "commits": 16,
+      "name": "Luis Antonio Obis Aparicio",
+      "email": "luis.obis@cern.ch"
+    },
+    {
+      "commits": 15,
+      "name": "Cristian Contescu",
+      "email": "acontesc@cern.ch"
+    },
+    {
+      "commits": 11,
+      "name": "Martin Vala",
+      "email": "martin.vala@cern.ch"
+    },
+    {
+      "commits": 11,
+      "name": "Pablo Oliver Cort\u00e9s",
+      "email": "pablo.oliver.cortes@cern.ch"
+    },
+    {
+      "commits": 11,
+      "name": "Robert-Paul Pasca",
+      "email": "robert-paul.pasca@cern.ch"
+    },
+    {
+      "commits": 10,
+      "name": "Mano Segransan",
+      "email": "mano.segransan@cern.ch"
+    },
+    {
+      "commits": 10,
+      "name": "Pedro Ferreira",
+      "email": "pedro.ferreira@cern.ch"
+    },
+    {
+      "commits": 8,
+      "name": "Aritz Brosa",
+      "email": "aritz.brosa.iartza@cern.ch"
+    },
+    {
+      "commits": 7,
+      "name": "Adrian Sevcenco",
+      "email": "adrian.sevcenco@cern.ch"
+    },
+    {
+      "commits": 7,
+      "name": "Elvin Sindrilaru",
+      "email": "elvin.sindrilaru@gmail.com"
+    },
+    {
+      "commits": 6,
+      "name": "Dan van der Ster",
+      "email": "daniel.vanderster@cern.ch"
+    },
+    {
+      "commits": 6,
+      "name": "Dennis Waldron",
+      "email": "Dennis.Waldron@cern.ch"
+    },
+    {
+      "commits": 6,
+      "name": "Enrico Bocchi",
+      "email": "enrico.bocchi@cern.ch"
+    },
+    {
+      "commits": 6,
+      "name": "Jorge Camarero Vera",
+      "email": "jorge.camarero@cern.ch"
+    },
+    {
+      "commits": 6,
+      "name": "Julien Leduc",
+      "email": "julien.leduc@cern.ch"
+    },
+    {
+      "commits": 5,
+      "name": "Crystal Chua",
+      "email": "crystal.chua@aarnet.edu.au"
+    },
+    {
+      "commits": 5,
+      "name": "Giuseppe Lo Presti",
+      "email": "giuseppe.lopresti@cern.ch"
+    },
+    {
+      "commits": 5,
+      "name": "Hans Holmberg",
+      "email": "hans.holmberg@wdc.com"
+    },
+    {
+      "commits": 5,
+      "name": "Konstantinos Tsitsimpikos",
+      "email": "konstantinos.tsitsimpikos@cern.ch"
+    },
+    {
+      "commits": 5,
+      "name": "Niels Bugel",
+      "email": "niels.alexander.bugel@cern.ch"
+    },
+    {
+      "commits": 5,
+      "name": "Tobias Kapp\u00e9",
+      "email": "tobias.kappe@cern.ch"
+    },
+    {
+      "commits": 5,
+      "name": "Volodymyr Yurchenko",
+      "email": "volodymyr.yurchenko@cern.ch"
+    },
+    {
+      "commits": 4,
+      "name": "Jesse Geens",
+      "email": "jgeens@cern.ch"
+    },
+    {
+      "commits": 3,
+      "name": "Hugo Gonzalez Labrador",
+      "email": "github@hugo.labkode.com"
+    },
+    {
+      "commits": 3,
+      "name": "Jan van Eldik",
+      "email": "jan.van.eldik@cern.ch"
+    },
+    {
+      "commits": 3,
+      "name": "R. P. Taylor",
+      "email": "rptaylor@uvic.ca"
+    },
+    {
+      "commits": 3,
+      "name": "kaehatah",
+      "email": "karl.ehataht@cern.ch"
+    },
+    {
+      "commits": 2,
+      "name": "David Jericho",
+      "email": "david.jericho@aarnet.edu.au"
+    },
+    {
+      "commits": 2,
+      "name": "Eric Cano",
+      "email": "Eric.Cano@cern.ch"
+    },
+    {
+      "commits": 2,
+      "name": "Gerard Bernabeu",
+      "email": "gerard1@fnal.gov"
+    },
+    {
+      "commits": 2,
+      "name": "Guilherme Amadio",
+      "email": "guilherme@amadio.org"
+    },
+    {
+      "commits": 2,
+      "name": "Ivan Arizanovic",
+      "email": "ivan.arizanovic@comtrade.com"
+    },
+    {
+      "commits": 2,
+      "name": "Jakub Moscicki",
+      "email": "Jakub.Moscicki@cern.ch"
+    },
+    {
+      "commits": 2,
+      "name": "Jesse Geens",
+      "email": "jesse.geens@gmail.com"
+    },
+    {
+      "commits": 2,
+      "name": "Niels Bugel",
+      "email": "bugel.niels@gmail.com"
+    },
+    {
+      "commits": 2,
+      "name": "Pablo Medina Ramos",
+      "email": "pablo.medina.ramos@cern.ch"
+    },
+    {
+      "commits": 2,
+      "name": "Stefan Isidorovic",
+      "email": "stefan.isidorovic@comtrade.com"
+    },
+    {
+      "commits": 1,
+      "name": "Adrian M\u00f6nnich",
+      "email": "adrian.moennich@cern.ch"
+    },
+    {
+      "commits": 1,
+      "name": "Andre Sailer",
+      "email": "andre.philippe.sailer@cern.ch"
+    },
+    {
+      "commits": 1,
+      "name": "Diogo Mattioli",
+      "email": "diogo.mattioli@cern.ch"
+    },
+    {
+      "commits": 1,
+      "name": "Duo Fix CI/CD Pipeline",
+      "email": "service_account_group_629_0e695a98b99b4dfe646c0d85e8b7c991@noreply.gitlab.cern.ch"
+    },
+    {
+      "commits": 1,
+      "name": "Ilja Neumann",
+      "email": "ineumann@owncloud.com"
+    },
+    {
+      "commits": 1,
+      "name": "J\u00f6rn Friedrich Dreyer",
+      "email": "jfd@butonic.de"
+    },
+    {
+      "commits": 1,
+      "name": "Michael Alexander D'Silva",
+      "email": "m.a.d@cern.ch"
+    },
+    {
+      "commits": 1,
+      "name": "Michael Lettrich",
+      "email": "michael.lettrich@cern.ch"
+    },
+    {
+      "commits": 1,
+      "name": "Mr Jenkins",
+      "email": "jenkins@pb-d-128-141-194-219.cern.ch"
+    },
+    {
+      "commits": 1,
+      "name": "Pablo Medina",
+      "email": "pablomrprofesional@gmail.com"
+    },
+    {
+      "commits": 1,
+      "name": "Pablo Oliver Cortes",
+      "email": "pablo.oliver.cortes@cern.ch"
+    },
+    {
+      "commits": 1,
+      "name": "Paul Musset",
+      "email": "paul.musset@cern.ch"
+    },
+    {
+      "commits": 1,
+      "name": "Yujiang Bi",
+      "email": "biyujiang@ihep.ac.cn"
+    },
+    {
+      "commits": 1,
+      "name": "okilicki",
+      "email": "ozlem.kilickiran@cern.ch"
+    }
+  ]
+}

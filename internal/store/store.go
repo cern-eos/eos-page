@@ -84,6 +84,14 @@ func Open(dbPath, mediaDir string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
+	if err := s.ensureFirstWorkshop(); err != nil {
+		db.Close()
+		return nil, err
+	}
+	if err := s.ensureGitContributors(); err != nil {
+		db.Close()
+		return nil, err
+	}
 	if s.Setting("hero_video") == "" {
 		if err := s.SetSetting("hero_video", "ttSjYYBOlsM"); err != nil {
 			db.Close()
@@ -309,6 +317,13 @@ CREATE TABLE IF NOT EXISTS commits (
 CREATE VIRTUAL TABLE IF NOT EXISTS commits_fts USING fts5(
   sha UNINDEXED, title, body, author,
   tokenize='porter'
+);
+CREATE TABLE IF NOT EXISTS git_contributors (
+  id TEXT PRIMARY KEY,
+  sort INTEGER NOT NULL DEFAULT 0,
+  commits INTEGER NOT NULL DEFAULT 0,
+  name TEXT NOT NULL DEFAULT '',
+  email TEXT NOT NULL DEFAULT ''
 );
 `)
 	return err
