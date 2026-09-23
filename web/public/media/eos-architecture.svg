@@ -175,7 +175,7 @@
     </g>
     <g class="arch-hit" transform="translate(512,716)">
       <rect width="216" height="52" rx="12" fill="#fff" stroke="#d4d4d4"/>
-      <text x="108" y="32" fill="#1a1a1a" font-size="14" font-weight="600">S3 / MinIO</text>
+      <text x="108" y="32" fill="#1a1a1a" font-size="14" font-weight="600">S3/Minio/VersityGW</text>
     </g>
     <g class="arch-hit" transform="translate(744,716)">
       <rect width="216" height="52" rx="12" fill="#fff" stroke="#d4d4d4"/>

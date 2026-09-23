@@ -966,7 +966,7 @@ function startTitleSpray() {
 
 function setNav() {
   const p = path();
-  document.querySelectorAll(".nav a").forEach((a) => {
+  document.querySelectorAll(".nav a, .nav-home").forEach((a) => {
     const href = a.getAttribute("href");
     a.classList.toggle("on", href === p || (href !== "/" && p.startsWith(href)));
   });
@@ -1447,8 +1447,8 @@ function paragraphs(text) {
 function architectureFigure() {
   return `
     <figure class="arch-figure">
-      <div class="arch-draw-host" data-arch-src="/static/media/eos-architecture.svg?v=hover1">
-        <img class="arch-draw" src="/static/media/eos-architecture.svg?v=hover1" width="1280" height="820" alt="EOS Diopside architecture: clients reach the MGM over XRootD or HTTP; metadata is persisted in a three-node QuarkDB RAFT cluster; QuarkDB pub-sub carries MGM–FST messages; file data lives on FST disks, with CERNBox, S3, CIFS, SFTP and CTA at the edge." />
+      <div class="arch-draw-host" data-arch-src="/static/media/eos-architecture.svg?v=versity">
+        <img class="arch-draw" src="/static/media/eos-architecture.svg?v=versity" width="1280" height="820" alt="EOS Diopside architecture: clients reach the MGM over XRootD or HTTP; metadata is persisted in a three-node QuarkDB RAFT cluster; QuarkDB pub-sub carries MGM–FST messages; file data lives on FST disks, with CERNBox, S3, CIFS, SFTP and CTA at the edge." />
       </div>
       <div class="arch-stack" aria-hidden="true">
         <p class="arch-layer">01 Access</p>
@@ -1467,7 +1467,7 @@ function architectureFigure() {
         </div>
         <p class="arch-layer">04 Ecosystem</p>
         <div class="arch-pills">
-          <span>CERNBox</span><span>Samba / CIFS</span><span>S3 / MinIO</span><span>SFTP</span><span>CTA tape</span>
+          <span>CERNBox</span><span>Samba / CIFS</span><span>S3/Minio/VersityGW</span><span>SFTP</span><span>CTA tape</span>
         </div>
       </div>
       <figcaption class="arch-cap">Three core services - MGM, FST and QuarkDB. Messaging uses QuarkDB pub-sub. Clients open on the MGM; data I/O is redirected to FSTs.</figcaption>

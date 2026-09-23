@@ -31,13 +31,19 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .top {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.45rem 1.3rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0.28rem 1.15rem 0.32rem;
   background: #000;
   position: sticky;
   top: 0;
   z-index: 20;
+}
+.top-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
 }
 .brand {
   display: flex;
@@ -48,24 +54,32 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-weight: 600;
 }
 .brand:hover { text-decoration: none; color: #fff; }
-.brand .logo { height: 3.4rem; width: auto; }
+.brand .logo { height: 2.7rem; width: auto; }
 .brand em {
   font-style: normal;
   font-weight: 500;
   color: var(--orange);
   font-size: 0.95rem;
 }
-.nav { display: flex; flex-wrap: wrap; gap: 0.2rem 0.95rem; flex: 1; justify-content: flex-end; }
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.05rem 0.72rem;
+  padding: 0.22rem 0 0.08rem;
+  border-top: 1px solid rgba(255,255,255,0.14);
+  margin-top: 0.22rem;
+}
 .cern-logo {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  margin-left: 0.55rem;
+  margin-left: 0.15rem;
 }
 .cern-logo:hover { opacity: 0.82; }
 .cern-logo img {
   display: block;
-  height: 3.4rem;
+  height: 2.7rem;
   width: auto;
 }
 .foot-cern {
@@ -76,45 +90,40 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .nav a {
   color: #fff;
   text-decoration: none;
-  font-size: 0.92rem;
-  padding: 0.2rem 0;
+  font-size: 0.82rem;
+  padding: 0.08rem 0;
+  white-space: nowrap;
 }
 .nav a:hover, .nav a.on { color: var(--red); text-decoration: none; }
-.nav-home {
-  display: inline-flex;
+.icon-links {
+  display: flex;
   align-items: center;
-  margin-right: -0.35rem;
+  justify-content: flex-end;
+  gap: 0.32rem;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .nav-home svg {
   display: block;
-  width: 1.05rem;
-  height: 1.05rem;
+  width: 1.15rem;
+  height: 1.15rem;
   stroke: currentColor;
   fill: none;
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.repo-links {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex: 0 0 auto;
-}
 .repo-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.38rem;
-  margin-left: 0.15rem;
-  padding: 0.28rem 0.62rem;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
   border: 1px solid rgba(255,255,255,0.28);
   border-radius: 999px;
   color: #fff !important;
   text-decoration: none !important;
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   line-height: 1;
 }
 .repo-btn:hover {
@@ -2357,20 +2366,21 @@ mark.kw {
   .arch-figure .arch-draw { display: none; }
   .arch-stack { display: block; }
   .brand { order: 1; }
-  .repo-links { order: 2; margin-left: auto; }
-  .cern-logo { order: 3; margin-left: 0.35rem; }
-  .cern-logo img { height: 2.8rem; }
-  .menu-toggle { order: 4; margin-left: 0.45rem; }
-  .nav { display: none; order: 5; }
+  .icon-links { order: 2; }
+  .cern-logo { order: 3; margin-left: 0.2rem; }
+  .menu-toggle { order: 4; margin-left: 0.35rem; display: grid; }
+  .nav { display: none; }
   .top.is-menu .nav {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     position: absolute;
     left: 0; right: 0; top: 100%;
     background: #000;
-    padding: 0.8rem 1.2rem 1.1rem;
+    padding: 0.65rem 1.1rem 0.95rem;
+    margin-top: 0;
+    gap: 0.2rem;
   }
-  .menu-toggle { display: grid; }
   .hero { min-height: 70vh; }
 }
 

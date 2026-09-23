@@ -9,23 +9,42 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/app.css?v=repobtns" />
+  <link rel="stylesheet" href="/static/app.css?v=tworow" />
 </head>
 <body>
   <header class="top">
-    <a class="brand" href="/" data-nav>
-      <img class="logo" src="/static/media/eos-logo.png" alt="EOS" />
-      <em>Open Storage</em>
-    </a>
-    <button type="button" class="menu-toggle" data-menu="toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-    <nav class="nav" id="site-nav">
-      <a class="nav-home" href="/" data-nav title="Home" aria-label="Home">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.4 11.2 12 4.2l7.6 7"/><path d="M6.6 10.4V20h10.8v-9.6"/></svg>
+    <div class="top-icons">
+      <a class="brand" href="/" data-nav>
+        <img class="logo" src="/static/media/eos-logo.png" alt="EOS" />
+        <em>Open Storage</em>
       </a>
+      <div class="icon-links">
+        <a class="repo-btn nav-home" href="/" data-nav title="Home" aria-label="Home">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.4 11.2 12 4.2l7.6 7"/><path d="M6.6 10.4V20h10.8v-9.6"/></svg>
+        </a>
+        <a class="repo-btn" id="repo-gitlab" href="https://gitlab.cern.ch/dss/eos" target="_blank" rel="noreferrer" title="GitLab" aria-label="GitLab">
+          <img src="/static/media/gitlab-logo.svg" alt="" />
+        </a>
+        <a class="repo-btn" id="repo-ci" href="https://gitlab.cern.ch/dss/eos/pipelines" target="_blank" rel="noreferrer" title="CI" aria-label="CI">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.2" cy="12" r="2.15"/><circle cx="12" cy="12" r="2.15"/><circle cx="17.8" cy="12" r="2.15"/><path d="M8.35 12h1.5M14.15 12h1.5"/></svg>
+        </a>
+        <a class="repo-btn" id="repo-jira" href="https://its.cern.ch/jira/secure/RapidBoard.jspa?rapidView=4511&projectKey=EOS" target="_blank" rel="noreferrer" title="JIRA" aria-label="JIRA">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.8 19.2 11 12 20.2 4.8 11z"/><path d="M12 8.4 15.6 12 12 16 8.4 12z"/></svg>
+        </a>
+        <a class="repo-btn" id="repo-github" href="https://github.com/cern-eos/eos" target="_blank" rel="noreferrer" title="GitHub" aria-label="GitHub">
+          <img src="/static/media/github-mark-white.svg" alt="" />
+        </a>
+      </div>
+      <a class="cern-logo" href="https://home.cern" target="_blank" rel="noreferrer" title="CERN">
+        <img src="/static/media/cern-logo-white.svg" alt="CERN" />
+      </a>
+      <button type="button" class="menu-toggle" data-menu="toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <nav class="nav" id="site-nav">
       <a href="/about" data-nav>About</a>
-      <a href="/tech" data-nav>Tech</a>
+      <a href="/tech" data-nav>Tech/Dev</a>
       <a href="/roadmap" data-nav>Roadmap</a>
       <a href="/docs" data-nav>Docs</a>
       <a href="/workshops" data-nav>Workshops</a>
@@ -35,27 +54,6 @@
       <a href="/news" data-nav>News</a>
       <a href="/community" data-nav>Community/Support</a>
     </nav>
-    <div class="repo-links">
-      <a class="repo-btn" id="repo-gitlab" href="https://gitlab.cern.ch/dss/eos" target="_blank" rel="noreferrer">
-        <img src="/static/media/gitlab-logo.svg" alt="" />
-        <span>GitLab</span>
-      </a>
-      <a class="repo-btn" id="repo-ci" href="https://gitlab.cern.ch/dss/eos/pipelines" target="_blank" rel="noreferrer">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.2" cy="12" r="2.15"/><circle cx="12" cy="12" r="2.15"/><circle cx="17.8" cy="12" r="2.15"/><path d="M8.35 12h1.5M14.15 12h1.5"/></svg>
-        <span>CI</span>
-      </a>
-      <a class="repo-btn" id="repo-jira" href="https://its.cern.ch/jira/secure/RapidBoard.jspa?rapidView=4511&projectKey=EOS" target="_blank" rel="noreferrer">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.8 19.2 11 12 20.2 4.8 11z"/><path d="M12 8.4 15.6 12 12 16 8.4 12z"/></svg>
-        <span>JIRA</span>
-      </a>
-      <a class="repo-btn" id="repo-github" href="https://github.com/cern-eos/eos" target="_blank" rel="noreferrer">
-        <img src="/static/media/github-mark-white.svg" alt="" />
-        <span>GitHub</span>
-      </a>
-    </div>
-    <a class="cern-logo" href="https://home.cern" target="_blank" rel="noreferrer" title="CERN">
-      <img src="/static/media/cern-logo-white.svg" alt="CERN" />
-    </a>
   </header>
   <div class="page-stage">
     <main id="app"></main>
@@ -176,6 +174,6 @@
       </span>
     </button>
   </aside>
-  <script src="/static/app.js?v=repobtns"></script>
+  <script src="/static/app.js?v=tworow"></script>
 </body>
 </html>
