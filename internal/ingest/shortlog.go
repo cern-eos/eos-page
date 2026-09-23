@@ -75,23 +75,14 @@ func ParseGitShortlog(raw string) []store.GitContributor {
 		if name == "" {
 			name = email
 		}
-		if name == "" || isRootContributor(name, email) {
+		if name == "" {
 			continue
 		}
 		out = append(out, store.GitContributor{
-			Sort:    len(out) + 1,
 			Commits: n,
 			Name:    name,
 			Email:   email,
 		})
 	}
-	return out
-}
-
-func isRootContributor(name, email string) bool {
-	if strings.EqualFold(strings.TrimSpace(name), "root") {
-		return true
-	}
-	local, _, _ := strings.Cut(strings.ToLower(strings.TrimSpace(email)), "@")
-	return local == "root"
+	return NormalizeGitContributors(out)
 }

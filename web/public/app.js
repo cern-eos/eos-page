@@ -636,25 +636,30 @@ function stopOrbitAlign() {
 
 function alignOrbitHex() {
   const logo = document.querySelector(".orbit-logo");
+  const img = document.querySelector(".orbit-logo img");
   const title = document.querySelector(".title-letter") || document.querySelector(".title-loupe");
-  const slot = document.querySelector(".orbit-slot");
-  if (!logo || !title || !slot) return;
+  if (!logo || !img || !title || !img.naturalWidth) return false;
+  logo.style.translate = "-50% 0px";
   const titleR = title.getBoundingClientRect();
-  const slotR = slot.getBoundingClientRect();
+  const imgR = img.getBoundingClientRect();
   const titleCy = titleR.top + titleR.height / 2;
-  const slotCy = slotR.top + slotR.height / 2;
-  const dy = titleCy - slotCy - logo.offsetHeight / 2;
-  logo.style.translate = `-50% ${dy.toFixed(1)}px`;
+  const imgCy = imgR.top + imgR.height / 2;
+  logo.style.translate = `-50% ${(titleCy - imgCy).toFixed(1)}px`;
+  return true;
 }
 
 function startOrbitAlign() {
   stopOrbitAlign();
-  if (!document.querySelector(".orbit-logo")) return;
+  const logo = document.querySelector(".orbit-logo");
+  const img = document.querySelector(".orbit-logo img");
+  if (!logo || !img) return;
   orbitAlignAc = new AbortController();
+  logo.classList.add("is-pending");
   const run = () => {
-    alignOrbitHex();
+    if (alignOrbitHex()) logo.classList.remove("is-pending");
   };
-  run();
+  if (img.complete && img.naturalWidth) run();
+  else img.addEventListener("load", run, { once: true, signal: orbitAlignAc.signal });
   requestAnimationFrame(run);
   window.addEventListener("resize", run, { signal: orbitAlignAc.signal });
   document.fonts?.ready?.then(() => {
@@ -2063,7 +2068,8 @@ const WALL_RANKS = [
 function isRootContributor(p) {
   const name = String(p?.name || "").trim().toLowerCase();
   const email = String(p?.email || "").trim().toLowerCase();
-  return name === "root" || email.startsWith("root@");
+  const local = email.split("@")[0] || "";
+  return name === "root" || name === "unknown" || local === "root" || local === "jenkins" || name === "mr jenkins" || name.includes("ci/cd") || email.includes("service_account");
 }
 
 function wallRank(commits) {
@@ -2087,6 +2093,12 @@ function wallPeople() {
 
 function wall() {
   const people = wallPeople();
+  const totalCommits = people.reduce((n, p) => n + p.commits, 0);
+  const who = people.length === 1 ? "contributor" : "contributors";
+  const what = totalCommits === 1 ? "commit" : "commits";
+  const totals = people.length
+    ? ` In total, ${people.length.toLocaleString("en-US")} ${who} made ${totalCommits.toLocaleString("en-US")} ${what}.`
+    : "";
   const plaques = people.map((p, i) => `
     <article class="wall-plaque is-${p.rank}${p.shine ? " is-shine" : ""}${i === 0 ? " is-first" : ""}">
       ${i === 0 ? diopsideFigure("wall-diopside") : ""}
@@ -2099,14 +2111,76 @@ function wall() {
     <div class="wall-page">
       <div class="wrap wall-wrap">
         <p class="kicker">Contributors</p>
-        <h2>Wall of Fame</h2>
-        <p class="wall-lede">Everyone who has committed to the EOS repository. We are grateful for all your contributions!</p>
+        <h2>Developer Wall of Fame</h2>
+        <div class="wall-totals">
+          <div class="wall-total">
+            <b data-wall-count="${people.length}">0</b>
+            <span>Contributors</span>
+          </div>
+          <div class="wall-total">
+            <b data-wall-count="${totalCommits}">0</b>
+            <span>Commits</span>
+          </div>
+        </div>
+        <p class="wall-lede">Everyone who has committed to the EOS repository.${totals} We are grateful for all your contributions!</p>
         <div class="wall-grid">${plaques || `<p class="muted">The wall is still being built.</p>`}</div>
       </div>
     </div>`;
 }
 
+let wallCountRaf = 0;
 let wallShineTimer = 0;
+
+function stopWallCount() {
+  cancelAnimationFrame(wallCountRaf);
+  wallCountRaf = 0;
+}
+
+function startWallCount() {
+  stopWallCount();
+  const nodes = [...document.querySelectorAll("[data-wall-count]")].map((el) => ({
+    el,
+    max: Number(el.dataset.wallCount) || 0,
+  }));
+  if (!nodes.length) return;
+  const paint = (n, max) => {
+    const v = Math.max(0, Math.min(max, Math.round(n)));
+    return v.toLocaleString("en-US");
+  };
+  if (prefersQuiet()) {
+    nodes.forEach((n) => { n.el.textContent = paint(n.max, n.max); });
+    return;
+  }
+  const rise = 5000;
+  const hold = 5000;
+  const cycle = rise + hold;
+  const shown = nodes.map(() => 0);
+  let last = 0;
+  let prevT = 0;
+  const t0 = performance.now();
+  const tick = (now) => {
+    if (!document.querySelector("[data-wall-count]")) {
+      stopWallCount();
+      return;
+    }
+    if (!last) last = now;
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    const t = (now - t0) % cycle;
+    if (t < prevT) shown.forEach((_, i) => { shown[i] = 0; });
+    prevT = t;
+    const u = t < rise ? easeInOutQuad(t / rise) : 1;
+    const follow = 1 - Math.exp(-dt / 0.09);
+    nodes.forEach((n, i) => {
+      const target = n.max * u;
+      shown[i] += (target - shown[i]) * follow;
+      if (u === 1 && Math.abs(n.max - shown[i]) < 0.5) shown[i] = n.max;
+      n.el.textContent = paint(shown[i], n.max);
+    });
+    wallCountRaf = requestAnimationFrame(tick);
+  };
+  wallCountRaf = requestAnimationFrame(tick);
+}
 
 function stopWallShine() {
   window.clearTimeout(wallShineTimer);
@@ -2119,17 +2193,16 @@ function startWallShine() {
   const plaques = [...document.querySelectorAll(".wall-plaque.is-shine")];
   if (!plaques.length || prefersQuiet()) return;
   let i = 0;
-  const sweep = 880;
-  const gap = 220;
+  const sweep = 720;
   const tick = () => {
     plaques.forEach((el) => el.classList.remove("is-flashing"));
     const el = plaques[i % plaques.length];
     void el.offsetWidth;
     el.classList.add("is-flashing");
     i += 1;
-    wallShineTimer = window.setTimeout(tick, sweep + gap);
+    wallShineTimer = window.setTimeout(tick, sweep);
   };
-  wallShineTimer = window.setTimeout(tick, 360);
+  tick();
 }
 
 function commitWhen(iso) {
@@ -2352,14 +2425,18 @@ function render() {
   stopCollision();
   stopOrbitAlign();
   stopWallShine();
+  stopWallCount();
   setNav();
-  document.title = path() === "/" ? "EOS Open Storage" : (path() === "/wall" ? "EOS · Wall of Fame" : `EOS · ${path().slice(1)}`);
+  document.title = path() === "/" ? "EOS Open Storage" : (path() === "/wall" ? "EOS · Developer Wall of Fame" : `EOS · ${path().slice(1)}`);
   document.body.classList.toggle("is-wall", path() === "/wall");
   $("#app").innerHTML = view();
   bindPage();
   document.querySelector(".top")?.classList.remove("is-menu");
   if (location.hash) requestAnimationFrame(scrollToHash);
-  if (path() === "/wall") startWallShine();
+  if (path() === "/wall") {
+    startWallShine();
+    startWallCount();
+  }
   if (path() === "/" || path() === "/about") startAboutHighlight();
   if (path() !== "/") return;
   startTermType();

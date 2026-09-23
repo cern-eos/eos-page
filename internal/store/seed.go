@@ -279,7 +279,7 @@ func communityPeople() []Person {
 	}
 	ops := []Person{
 		{ID: "p-luca", Sort: 20, Visible: true, Name: "Luca Mascetti", Role: "Physics & Data Services Section Lead & openlab CTO", Email: "luca.mascetti@cern.ch"},
-		{ID: "p-ruhi", Sort: 21, Visible: true, Name: "Ruhi Choudhury", Role: "Physics Data Service Lead & openlab", Email: "ruhi.choudhury@cern.ch"},
+		{ID: "p-ruhi", Sort: 21, Visible: true, Name: "Ruhi Choudhury", Role: "Operations & openlab", Email: "ruhi.choudhury@cern.ch"},
 	}
 	return append(core, ops...)
 }

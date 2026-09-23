@@ -3,6 +3,7 @@ package store
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -39,19 +40,7 @@ func loadSeedContributors() ([]GitContributor, error) {
 	if err := json.Unmarshal(raw, &file); err != nil {
 		return nil, err
 	}
-	kept := file.Contributors[:0]
-	for _, p := range file.Contributors {
-		if isRootGitContributor(p.Name, p.Email) {
-			continue
-		}
-		kept = append(kept, p)
-	}
-	file.Contributors = kept
-	for i := range file.Contributors {
-		if file.Contributors[i].Sort == 0 {
-			file.Contributors[i].Sort = i + 1
-		}
-	}
+	file.Contributors = normalizeSeedContributors(file.Contributors)
 	if len(file.Contributors) == 0 {
 		return nil, fmt.Errorf("empty contributors seed")
 	}
@@ -93,20 +82,100 @@ func (s *Store) ListGitContributors() ([]GitContributor, error) {
 		if err := rows.Scan(&p.Sort, &p.Commits, &p.Name, &p.Email); err != nil {
 			return nil, err
 		}
-		if isRootGitContributor(p.Name, p.Email) {
-			continue
-		}
 		out = append(out, p)
 	}
 	return out, rows.Err()
 }
 
-func isRootGitContributor(name, email string) bool {
-	if strings.EqualFold(strings.TrimSpace(name), "root") {
+func normalizeSeedContributors(people []GitContributor) []GitContributor {
+	type bucket struct {
+		name, email string
+		commits     int
+	}
+	merged := map[string]*bucket{}
+	order := []string{}
+	for _, p := range people {
+		if seedAutomation(p.Name, p.Email) {
+			continue
+		}
+		name, email := seedCanonical(p.Name, p.Email)
+		if name == "" {
+			continue
+		}
+		key := strings.ToLower(email)
+		if key == "" {
+			key = "name:" + strings.ToLower(name)
+		}
+		if b, ok := merged[key]; ok {
+			b.commits += p.Commits
+			continue
+		}
+		merged[key] = &bucket{name: name, email: email, commits: p.Commits}
+		order = append(order, key)
+	}
+	out := make([]GitContributor, 0, len(order))
+	for _, key := range order {
+		b := merged[key]
+		out = append(out, GitContributor{Name: b.name, Email: b.email, Commits: b.commits})
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].Commits != out[j].Commits {
+			return out[i].Commits > out[j].Commits
+		}
+		return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name)
+	})
+	for i := range out {
+		out[i].Sort = i + 1
+	}
+	return out
+}
+
+var seedAliases = map[string][2]string{
+	"elvin.alin.sindrilaru@cern.ch": {"Elvin Alin Sindrilaru", "elvin.alin.sindrilaru@cern.ch"},
+	"esindrl@cern.ch":               {"Elvin Alin Sindrilaru", "elvin.alin.sindrilaru@cern.ch"},
+	"elvin.sindrilaru@gmail.com":    {"Elvin Alin Sindrilaru", "elvin.alin.sindrilaru@cern.ch"},
+	"david.smith@cern.ch":           {"David Smith", "david.smith@cern.ch"},
+	"luis.antonio.obis@gmail.com":   {"Luis Antonio Obis Aparicio", "luis.obis@cern.ch"},
+	"luis.obis@cern.ch":             {"Luis Antonio Obis Aparicio", "luis.obis@cern.ch"},
+	"amadio@cern.ch":                {"Guilherme Amadio", "amadio@cern.ch"},
+	"guilherme@amadio.org":          {"Guilherme Amadio", "amadio@cern.ch"},
+	"niels.alexander.bugel@cern.ch": {"Niels Alexander Buegel", "niels.alexander.bugel@cern.ch"},
+	"bugel.niels@gmail.com":         {"Niels Alexander Buegel", "niels.alexander.bugel@cern.ch"},
+	"rptaylor@uvic.ca":              {"Ryan Taylor", "rptaylor@uvic.ca"},
+	"jgeens@cern.ch":                {"Jesse Geens", "jgeens@cern.ch"},
+	"jesse.geens@gmail.com":         {"Jesse Geens", "jgeens@cern.ch"},
+	"pablo.oliver.cortes@cern.ch":   {"Pablo Oliver Cortés", "pablo.oliver.cortes@cern.ch"},
+}
+
+func seedCanonical(name, email string) (string, string) {
+	name = strings.TrimSpace(name)
+	email = strings.TrimSpace(email)
+	if pair, ok := seedAliases[strings.ToLower(email)]; ok {
+		return pair[0], pair[1]
+	}
+	switch strings.ToLower(name) {
+	case "kaehatah":
+		name = "Karl Ehataht"
+	case "okilicki":
+		name = "Ozlem Kilickiran"
+	}
+	return name, email
+}
+
+func seedAutomation(name, email string) bool {
+	n := strings.ToLower(strings.TrimSpace(name))
+	e := strings.ToLower(strings.TrimSpace(email))
+	local, _, _ := strings.Cut(e, "@")
+	if n == "root" || n == "unknown" || local == "root" {
 		return true
 	}
-	local, _, _ := strings.Cut(strings.ToLower(strings.TrimSpace(email)), "@")
-	return local == "root"
+	if local == "jenkins" || n == "mr jenkins" {
+		return true
+	}
+	if strings.Contains(n, "ci/cd") || strings.Contains(e, "service_account") {
+		return true
+	}
+	return false
 }
 
 func (s *Store) GitContributorCount() int {

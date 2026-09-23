@@ -157,7 +157,7 @@ func TestGitContributorsSeed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(people) < 80 {
+	if len(people) < 70 {
 		t.Fatalf("expected seeded shortlog, got %d", len(people))
 	}
 	if people[0].Name != "Elvin Alin Sindrilaru" || people[0].Commits < 9000 {
@@ -166,9 +166,20 @@ func TestGitContributorsSeed(t *testing.T) {
 	if people[1].Name != "Andreas Joachim Peters" {
 		t.Fatalf("second %+v", people[1])
 	}
+	seen := map[string]int{}
 	for _, p := range people {
-		if strings.EqualFold(p.Name, "root") || strings.HasPrefix(strings.ToLower(p.Email), "root@") {
-			t.Fatalf("root still listed: %+v", p)
+		if strings.EqualFold(p.Name, "root") || strings.EqualFold(p.Name, "unknown") || strings.HasPrefix(strings.ToLower(p.Email), "root@") {
+			t.Fatalf("automation still listed: %+v", p)
+		}
+		if strings.Contains(strings.ToLower(p.Email), "jenkins") || strings.Contains(strings.ToLower(p.Name), "ci/cd") {
+			t.Fatalf("automation still listed: %+v", p)
+		}
+		key := strings.ToLower(p.Email)
+		if key != "" {
+			seen[key]++
+			if seen[key] > 1 {
+				t.Fatalf("duplicate identity %s", p.Email)
+			}
 		}
 	}
 }
