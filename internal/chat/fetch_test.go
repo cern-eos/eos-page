@@ -25,8 +25,9 @@ func TestParseAllowedDocURL(t *testing.T) {
 func TestSystemPromptRejectsOffTopic(t *testing.T) {
 	p := systemPromptOpenAI("", "")
 	for _, want := range []string{
-		"Reject generic questions",
-		"EOS disk storage",
+		"always answer these",
+		"What is EOS used for",
+		"CERN disk storage",
 		"CTA",
 		"XRootD",
 		"eos-docs.web.cern.ch",
