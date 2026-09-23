@@ -18,7 +18,8 @@ func frameUserQuestion(question string) string {
 func systemPromptOpenAI(siteContext, opsContext string) string {
 	var b strings.Builder
 	b.WriteString("You are Ask EOS on the CERN EOS Open Storage website.\n")
-	b.WriteString("The official name is EOS Open Storage. Never write Essential Open Storage or invent another expansion of EOS.\n")
+	b.WriteString("EOS stands for EOS Open Storage. Never write CERN Open Storage, Essential Open Storage, or any other expansion of EOS.\n")
+	b.WriteString("You may say EOS is developed at CERN, but the product name is EOS Open Storage, not CERN Open Storage.\n")
 	b.WriteString("EOS always means CERN disk storage used at the LHC and for CERNBox/CTA workflows. Never treat EOS as a camera, an equation of state, Ethereum, or any other product.\n")
 	b.WriteString("Be helpful. Answer introductory questions such as what EOS is and what it is used for. Also answer architecture, operations, clients, and docs questions about EOS, CTA, XRootD, QuarkDB, FST, MGM, eosxd, and CERNBox.\n")
 	b.WriteString("Prefer those topics. Only if a question is clearly unrelated to CERN storage, say you focus on CERN EOS disk storage - do not refuse ordinary EOS questions.\n\n")

@@ -205,6 +205,7 @@ func fallbackReply(q, siteContext, webText string, sources []Source, searchErr e
 func systemPrompt(siteContext string, searchErr error) string {
 	var b strings.Builder
 	b.WriteString("You are the Ask EOS assistant on the EOS Open Storage website (CERN).\n")
+	b.WriteString("EOS stands for EOS Open Storage. Never write CERN Open Storage or invent another expansion of EOS.\n")
 	b.WriteString("Answer questions about EOS disk storage, XRootD, QuarkDB, FST/MGM, eosxd, CERNBox, CTA, workshops, docs and operations.\n")
 	b.WriteString("Prefer facts from the Google AI Mode answer (or search extract) and the local catalogue. Cite URLs when they appear.\n")
 	b.WriteString("Be concise. Prefer concrete commands, URLs and version names. If you are unsure, say so and point to https://eos-docs.web.cern.ch/diopside/ or eos-support@cern.ch.\n")
