@@ -251,8 +251,20 @@ func (c *Client) configuredOpenAI() bool {
 	return c != nil && strings.TrimSpace(c.openaiKey) != ""
 }
 
-func logOpenAIFallback(err error) {
+func (c *Client) StartupProbe(ctx context.Context) {
+	if !c.configuredOpenAI() {
+		return
+	}
+	q := "In one sentence, what is CERN EOS storage?"
+	log.Printf("ask eos test query: %s", q)
+	reply, err := c.Ask(ctx, q, "", nil)
 	if err != nil {
-		log.Printf("ask eos openai: %v; falling back", err)
+		log.Printf("ask eos test FAILED: %v", err)
+		return
+	}
+	text := clipRunes(strings.Join(strings.Fields(reply.Text), " "), 400)
+	log.Printf("ask eos test reply: %s", text)
+	if len(reply.Sources) > 0 {
+		log.Printf("ask eos test sources: %d", len(reply.Sources))
 	}
 }

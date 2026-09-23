@@ -112,10 +112,13 @@ func (c *Client) Ask(ctx context.Context, question, siteContext string, history 
 	}
 	if c.configuredOpenAI() {
 		reply, oerr := c.askOpenAI(ctx, q, siteContext, history)
-		if oerr == nil && strings.TrimSpace(reply.Text) != "" {
-			return reply, nil
+		if oerr != nil {
+			return Reply{}, oerr
 		}
-		logOpenAIFallback(oerr)
+		if strings.TrimSpace(reply.Text) == "" {
+			return Reply{}, fmt.Errorf("openai returned an empty answer")
+		}
+		return reply, nil
 	}
 	ai, webText, webSources, searchErr := liveSearch(ctx, q)
 	if c.api == nil {

@@ -80,6 +80,9 @@ func main() {
 			model = "gpt-4o-mini"
 		}
 		log.Printf("Ask EOS chat: OpenAI %s (EOS/CTA/XRootD only)", model)
+		probe, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+		ask.StartupProbe(probe)
+		cancel()
 	} else if ask != nil && geminiKey != "" {
 		log.Printf("Ask EOS chat: Gemini %s with live web search", chat.Model)
 	} else {

@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net"
 	"net/http"
 	"strings"
@@ -77,6 +78,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	reply, err := s.Chat.Ask(ctx, body.Message, s.chatSiteContext(body.Message), body.History)
 	if err != nil {
+		log.Printf("ask eos: %v", err)
 		msg := err.Error()
 		status := http.StatusBadGateway
 		if strings.Contains(msg, "empty question") || strings.Contains(msg, "too long") {
@@ -150,6 +152,8 @@ func publicChatError(msg string) string {
 		return "That question is too long."
 	case strings.Contains(low, "not configured"):
 		return "Ask EOS is starting up - try again in a moment."
+	case strings.Contains(low, "openai"):
+		return "OpenAI could not answer just now. Check the server log, or try again."
 	default:
 		return "Ask EOS could not answer just now. Try again, or write to eos-support@cern.ch."
 	}

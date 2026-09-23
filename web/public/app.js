@@ -2429,7 +2429,15 @@ function bindChat() {
   const root = $("#eos-chat");
   if (!root || root.dataset.bound) return;
   root.dataset.bound = "1";
-  fetch("/api/chat").catch(() => {});
+  fetch("/api/chat")
+    .then((r) => r.json())
+    .then((data) => {
+      const mode = root.querySelector("[data-chat-mode]");
+      if (!mode) return;
+      if (data.openai) mode.textContent = "Ask EOS · OpenAI";
+      else mode.textContent = "Ask EOS · live web search";
+    })
+    .catch(() => {});
   root.addEventListener("pointerenter", () => {
     window.clearTimeout(chatLeaveTimer);
     setChatOpen(true, false);
