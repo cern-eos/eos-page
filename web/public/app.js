@@ -2551,11 +2551,47 @@ function safeChatHref(href) {
 const CHAT_CODE_LANG = /^(bash|sh|shell|zsh|console|text|plaintext|json|ya?ml|ini|conf|cfg|cmake|python|py|go|js|javascript|c|cpp|diff|toml|xml|html|css|sql|nginx)\b/i;
 const CHAT_CODE_CMD = /^(yum|dnf|apt|cmake|ninja|ninja-build|git|systemctl|eos|bash|mkdir|cd|for|cat|echo|chmod|chown|cp|mv|rm|ln|export|source)\b/;
 
+function extractFenceBody(block) {
+  const lines = String(block || "").replace(/^\n/, "").split("\n");
+  if (lines.length && /^\s*```/.test(lines[0])) {
+    const rest = lines.shift().replace(/^\s*```/, "");
+    const closeAt = rest.indexOf("```");
+    const inner = closeAt >= 0 ? rest.slice(0, closeAt) : rest;
+    const lang = inner.match(CHAT_CODE_LANG);
+    const extra = (lang ? inner.slice(lang[0].length) : inner).replace(/^[ \t]+/, "").trim();
+    if (extra) lines.unshift(extra);
+  }
+  if (lines.length && /^\s*```\s*$/.test(lines[lines.length - 1])) lines.pop();
+  else if (lines.length) lines[lines.length - 1] = lines[lines.length - 1].replace(/\s*```+\s*$/, "");
+  return dedentChatCode(lines.join("\n")).trim();
+}
+
+function dedentChatCode(body) {
+  const lines = String(body || "").split("\n");
+  const indents = lines.filter((l) => l.trim()).map((l) => (l.match(/^[ \t]*/) || [""])[0].length);
+  const n = indents.length ? Math.min(...indents) : 0;
+  return n ? lines.map((l) => l.slice(Math.min(n, l.length))).join("\n") : String(body || "");
+}
+
+function stashChatFence(saved, body) {
+  saved.push("```\n" + String(body || "").trim() + "\n```");
+  return `\n%%CHATFENCE${saved.length - 1}%%\n`;
+}
+
 function promoteChatFences(text) {
   const saved = [];
-  let src = String(text || "").replace(/```[\s\S]*?```/g, (block) => {
-    saved.push(block);
-    return `\n%%CHATFENCE${saved.length - 1}%%\n`;
+  let src = String(text || "").replace(/(?:^|\n)[ \t]*```[^\n]*\n[\s\S]*?\n[ \t]*```[ \t]*(?=\n|$)/g, (block) => (
+    stashChatFence(saved, extractFenceBody(block))
+  ));
+  src = src.replace(/[ \t]*```([^\n`]*?)```[ \t]*/g, (_, inner) => {
+    let body = String(inner || "").trim();
+    const lang = body.match(CHAT_CODE_LANG);
+    if (lang) body = body.slice(lang[0].length).replace(/^[ \t]+/, "").trim();
+    const compact = body.replace(/\s+/g, " ").trim();
+    if (!lang && !body.includes("\n") && compact.length < 48 && !CHAT_CODE_CMD.test(compact)) {
+      return "`" + compact + "`";
+    }
+    return stashChatFence(saved, body);
   });
   src = src.replace(/``([\s\S]*?)``/g, (_, inner) => {
     let body = String(inner || "").replace(/^\n/, "").replace(/\n$/, "");
@@ -2565,13 +2601,30 @@ function promoteChatFences(text) {
     if (!lang && !body.includes("\n") && compact.length < 48 && !CHAT_CODE_CMD.test(compact)) {
       return "`" + compact + "`";
     }
-    return "\n```\n" + body.trim() + "\n```\n";
+    return stashChatFence(saved, body.trim());
   });
   return src.replace(/%%CHATFENCE(\d+)%%/g, (_, i) => saved[Number(i)]);
 }
 
+function parseFenceLine(line) {
+  const m = String(line).match(/^(\s*)```(.*)$/);
+  if (!m) return null;
+  let rest = m[2];
+  let closed = false;
+  const closeAt = rest.indexOf("```");
+  if (closeAt >= 0) {
+    closed = true;
+    rest = rest.slice(0, closeAt);
+  }
+  rest = rest.replace(/\s+$/, "");
+  const lang = rest.match(CHAT_CODE_LANG);
+  const body = (lang ? rest.slice(lang[0].length) : rest).replace(/^[ \t]+/, "").trim();
+  return { body, closed, onlyFence: !body };
+}
+
 function formatChatInline(text) {
   let s = esc(text);
+  s = s.replace(/```+/g, "");
   s = s.replace(/``+/g, "");
   s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
@@ -2614,21 +2667,35 @@ function renderChatMarkdown(raw) {
   };
   const flushFence = () => {
     if (!fence) return;
-    out.push(chatCodeBlock(fence.join("\n")));
+    while (fence.length && /^\s*```+\s*$/.test(fence[fence.length - 1])) fence.pop();
+    if (fence.length) fence[fence.length - 1] = fence[fence.length - 1].replace(/\s*```+\s*$/, "");
+    const body = dedentChatCode(fence.join("\n")).trim();
+    if (body) out.push(chatCodeBlock(body));
     fence = null;
   };
 
   for (const line of lines) {
-    const fenceOpen = line.match(/^```(.*)$/);
+    const mark = parseFenceLine(line);
     if (fence) {
-      if (fenceOpen) flushFence();
-      else fence.push(line);
+      if (mark && (mark.onlyFence || mark.closed)) {
+        if (mark.body) fence.push(mark.body);
+        flushFence();
+        continue;
+      }
+      if (/\s*```+\s*$/.test(line) && !mark) {
+        fence.push(line.replace(/\s*```+\s*$/, ""));
+        flushFence();
+        continue;
+      }
+      fence.push(line);
       continue;
     }
-    if (fenceOpen) {
+    if (mark) {
+      if (mark.onlyFence && mark.closed) continue;
       flushPara();
       flushList();
-      fence = [];
+      fence = mark.body ? [mark.body] : [];
+      if (mark.closed) flushFence();
       continue;
     }
     if (!line.trim()) {
