@@ -2312,17 +2312,54 @@ mark.kw {
   border-radius: 4px;
 }
 .eos-chat-msg.is-md .eos-chat-code {
+  position: relative;
   margin: 0.35em 0 0.55em;
-  padding: 0.55em 0.65em;
+  padding: 0.55em 3.4em 0.55em 0.65em;
   overflow: auto;
   background: #111;
   color: #f4f1ea;
   border-radius: 8px;
+  cursor: pointer;
 }
 .eos-chat-msg.is-md .eos-chat-code code {
   background: none;
   padding: 0;
   color: inherit;
+  cursor: inherit;
+}
+.eos-chat-msg.is-md code.is-copyable,
+.eos-chat-msg.is-md .eos-chat-code.is-copyable {
+  cursor: pointer;
+}
+.eos-chat-msg.is-md code.is-copyable:hover {
+  background: #e6e6e6;
+}
+.eos-chat-msg.is-md .eos-chat-code.is-copyable::after {
+  content: "Copy";
+  position: absolute;
+  top: 0.35em;
+  right: 0.45em;
+  background: #2a2a2a;
+  color: #f4f1ea;
+  font-family: inherit;
+  font-size: 0.68rem;
+  line-height: 1;
+  padding: 0.18em 0.45em;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+}
+.eos-chat-msg.is-md .eos-chat-code.is-copyable:hover::after,
+.eos-chat-msg.is-md .eos-chat-code.is-copied::after {
+  opacity: 1;
+}
+.eos-chat-msg.is-md .eos-chat-code.is-copied::after {
+  content: "Copied";
+  background: var(--ok);
+  color: #fff;
+}
+.eos-chat-msg.is-md code.is-copyable {
+  position: relative;
 }
 .eos-chat-msg.is-error { color: #8a1f14; background: #fff3f1; }
 .eos-chat-msg.is-wait { color: var(--muted); font-style: italic; }

@@ -2548,8 +2548,31 @@ function safeChatHref(href) {
   return "";
 }
 
+const CHAT_CODE_LANG = /^(bash|sh|shell|zsh|console|text|plaintext|json|ya?ml|ini|conf|cfg|cmake|python|py|go|js|javascript|c|cpp|diff|toml|xml|html|css|sql|nginx)\b/i;
+const CHAT_CODE_CMD = /^(yum|dnf|apt|cmake|ninja|ninja-build|git|systemctl|eos|bash|mkdir|cd|for|cat|echo|chmod|chown|cp|mv|rm|ln|export|source)\b/;
+
+function promoteChatFences(text) {
+  const saved = [];
+  let src = String(text || "").replace(/```[\s\S]*?```/g, (block) => {
+    saved.push(block);
+    return `\n%%CHATFENCE${saved.length - 1}%%\n`;
+  });
+  src = src.replace(/``([\s\S]*?)``/g, (_, inner) => {
+    let body = String(inner || "").replace(/^\n/, "").replace(/\n$/, "");
+    const lang = body.match(CHAT_CODE_LANG);
+    if (lang) body = body.slice(lang[0].length).replace(/^[ \t]+/, "").replace(/^\n/, "");
+    const compact = body.replace(/\s+/g, " ").trim();
+    if (!lang && !body.includes("\n") && compact.length < 48 && !CHAT_CODE_CMD.test(compact)) {
+      return "`" + compact + "`";
+    }
+    return "\n```\n" + body.trim() + "\n```\n";
+  });
+  return src.replace(/%%CHATFENCE(\d+)%%/g, (_, i) => saved[Number(i)]);
+}
+
 function formatChatInline(text) {
   let s = esc(text);
+  s = s.replace(/``+/g, "");
   s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/(^|[\s(])\*([^*\n]+)\*/g, "$1<em>$2</em>");
@@ -2566,8 +2589,12 @@ function formatChatInline(text) {
   return s;
 }
 
+function chatCodeBlock(body) {
+  return `<pre class="eos-chat-code is-copyable" title="Click to copy" role="button" tabindex="0"><code>${esc(body)}</code></pre>`;
+}
+
 function renderChatMarkdown(raw) {
-  const text = String(raw || "").replace(/\r\n/g, "\n").trim();
+  const text = promoteChatFences(String(raw || "").replace(/\r\n/g, "\n")).trim();
   if (!text) return "";
   const lines = text.split("\n");
   const out = [];
@@ -2587,7 +2614,7 @@ function renderChatMarkdown(raw) {
   };
   const flushFence = () => {
     if (!fence) return;
-    out.push(`<pre class="eos-chat-code"><code>${esc(fence.join("\n"))}</code></pre>`);
+    out.push(chatCodeBlock(fence.join("\n")));
     fence = null;
   };
 
@@ -2652,6 +2679,29 @@ function finishChatAnswer(el, text, sources) {
   el.innerHTML = renderChatMarkdown(text);
   attachChatSources(el, sources);
   attachChatCopy(el);
+  attachChatCodeCopy(el);
+}
+
+function attachChatCodeCopy(el) {
+  if (!el) return;
+  el.querySelectorAll("code").forEach((node) => {
+    if (node.closest("pre.eos-chat-code")) return;
+    node.classList.add("is-copyable");
+    node.setAttribute("title", "Click to copy");
+    node.setAttribute("role", "button");
+    node.tabIndex = 0;
+  });
+}
+
+async function copyChatCode(block) {
+  const text = block.matches("pre")
+    ? (block.innerText || "").replace(/\n$/, "")
+    : (block.textContent || "");
+  if (!text.trim()) return;
+  if (!(await copyText(text))) return;
+  block.classList.add("is-copied");
+  window.clearTimeout(Number(block.dataset.copyTimer || 0));
+  block.dataset.copyTimer = String(window.setTimeout(() => block.classList.remove("is-copied"), 1400));
 }
 
 function attachChatCopy(el) {
@@ -2695,7 +2745,7 @@ function typeChatAnswer(el, text, sources) {
   if (prefersQuiet() || !full) return;
   const nodes = [];
   const walk = (n) => {
-    if (n.nodeType === 1 && n.matches(".eos-chat-sources, .eos-chat-msg-actions")) return;
+    if (n.nodeType === 1 && n.matches(".eos-chat-sources, .eos-chat-msg-actions, pre.eos-chat-code")) return;
     if (n.nodeType === 3) {
       if (n.parentElement?.closest(".eos-chat-sources, .eos-chat-msg-actions")) return;
       nodes.push({ node: n, full: n.nodeValue || "" });
@@ -2812,6 +2862,21 @@ function bindChat() {
   syncChatExport();
   root.querySelector("[data-chat-grow]")?.addEventListener("click", () => {
     setChatLarge(!root.classList.contains("is-large"));
+  });
+  const log = $("#eos-chat-log");
+  log?.addEventListener("click", (e) => {
+    if (e.target.closest(".eos-chat-copy, .eos-chat-sources, a")) return;
+    const block = e.target.closest("pre.eos-chat-code, code.is-copyable");
+    if (!block) return;
+    e.preventDefault();
+    copyChatCode(block);
+  });
+  log?.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const block = e.target.closest("pre.eos-chat-code, code.is-copyable");
+    if (!block) return;
+    e.preventDefault();
+    copyChatCode(block);
   });
   $("#eos-chat-form")?.addEventListener("submit", (e) => {
     e.preventDefault();

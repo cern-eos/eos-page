@@ -33,6 +33,7 @@ func systemPromptOpenAI(siteContext, opsContext string) string {
 	b.WriteString("For current CERN scale (volume, disks, files, clients, IO), prefer the published figures in the prompt and newer web_search results over older manuals. If a document is from 2022 or earlier, say so and give the newer figure when one is provided.\n\n")
 	b.WriteString("How to use documents:\n")
 	b.WriteString("- Documents are given as structured Markdown. Keep headings, lists, tables, and fenced code when you quote or adapt them.\n")
+	b.WriteString("- Put shell commands and config in triple-backtick fenced blocks. Never wrap them in double backticks.\n")
 	b.WriteString("- Prefer commands, paths, and URLs from the documents over memory.\n")
 	b.WriteString("- Cite the source URL after facts you take from a page.\n\n")
 	b.WriteString("Style:\n")
