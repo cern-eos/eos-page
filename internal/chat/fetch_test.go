@@ -26,6 +26,8 @@ func TestSystemPromptCERNDiskStorage(t *testing.T) {
 	p := systemPromptOpenAI("", "")
 	for _, want := range []string{
 		"CERN disk storage",
+		"EOS Open Storage",
+		"Never write Essential Open Storage",
 		"what EOS is and what it is used for",
 		"do not refuse ordinary EOS questions",
 		"eos-docs.web.cern.ch",

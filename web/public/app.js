@@ -2344,6 +2344,116 @@ function appendChat(role, text) {
   return el;
 }
 
+function safeChatHref(href) {
+  const raw = String(href || "").trim();
+  if (/^https?:\/\//i.test(raw) || /^mailto:/i.test(raw)) return raw;
+  return "";
+}
+
+function formatChatInline(text) {
+  let s = esc(text);
+  s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/(^|[\s(])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+    const url = safeChatHref(href.replace(/&amp;/g, "&"));
+    if (!url) return label;
+    return `<a href="${esc(url)}" target="_blank" rel="noreferrer">${label}</a>`;
+  });
+  s = s.replace(/(^|[\s>])(https?:\/\/[^\s<]+)/g, (_, lead, href) => {
+    const url = safeChatHref(href.replace(/[),.;]+$/, ""));
+    if (!url) return lead + href;
+    return `${lead}<a href="${esc(url)}" target="_blank" rel="noreferrer">${esc(url)}</a>`;
+  });
+  return s;
+}
+
+function renderChatMarkdown(raw) {
+  const text = String(raw || "").replace(/\r\n/g, "\n").trim();
+  if (!text) return "";
+  const lines = text.split("\n");
+  const out = [];
+  let para = [];
+  let list = null;
+  let fence = null;
+
+  const flushPara = () => {
+    if (!para.length) return;
+    out.push(`<p>${formatChatInline(para.join(" "))}</p>`);
+    para = [];
+  };
+  const flushList = () => {
+    if (!list) return;
+    out.push(`<${list.tag}>${list.items.join("")}</${list.tag}>`);
+    list = null;
+  };
+  const flushFence = () => {
+    if (!fence) return;
+    out.push(`<pre class="eos-chat-code"><code>${esc(fence.join("\n"))}</code></pre>`);
+    fence = null;
+  };
+
+  for (const line of lines) {
+    const fenceOpen = line.match(/^```(.*)$/);
+    if (fence) {
+      if (fenceOpen) flushFence();
+      else fence.push(line);
+      continue;
+    }
+    if (fenceOpen) {
+      flushPara();
+      flushList();
+      fence = [];
+      continue;
+    }
+    if (!line.trim()) {
+      flushPara();
+      flushList();
+      continue;
+    }
+    const bullet = line.match(/^\s*[-*]\s+(.+)$/);
+    if (bullet) {
+      flushPara();
+      if (!list || list.tag !== "ul") {
+        flushList();
+        list = { tag: "ul", items: [] };
+      }
+      list.items.push(`<li>${formatChatInline(bullet[1])}</li>`);
+      continue;
+    }
+    const numbered = line.match(/^\s*\d+\.\s+(.+)$/);
+    if (numbered) {
+      flushPara();
+      if (!list || list.tag !== "ol") {
+        flushList();
+        list = { tag: "ol", items: [] };
+      }
+      list.items.push(`<li>${formatChatInline(numbered[1])}</li>`);
+      continue;
+    }
+    const heading = line.match(/^#{1,3}\s+(.+)$/);
+    if (heading) {
+      flushPara();
+      flushList();
+      out.push(`<p><strong>${formatChatInline(heading[1])}</strong></p>`);
+      continue;
+    }
+    flushList();
+    para.push(line.trim());
+  }
+  flushFence();
+  flushPara();
+  flushList();
+  return out.join("");
+}
+
+function finishChatAnswer(el, text, sources) {
+  if (!el) return;
+  el.classList.add("is-md");
+  el.innerHTML = renderChatMarkdown(text);
+  attachChatSources(el, sources);
+}
+
 function attachChatSources(el, sources) {
   if (!el || !sources || !sources.length) return;
   const box = document.createElement("p");
@@ -2363,22 +2473,24 @@ function typeChatAnswer(el, text, sources) {
   window.clearTimeout(chatTypeTimer);
   const log = $("#eos-chat-log");
   const full = String(text || "");
-  if (prefersQuiet() || !full) {
-    el.textContent = full;
-    attachChatSources(el, sources);
+  const done = () => {
+    finishChatAnswer(el, full, sources);
     if (log) log.scrollTop = log.scrollHeight;
+  };
+  if (prefersQuiet() || !full) {
+    done();
     return;
   }
   let i = 0;
   const tick = () => {
-    i += 1;
-    el.textContent = full.slice(0, i);
+    i += i < 24 ? 6 : 18;
+    el.textContent = full.slice(0, Math.min(i, full.length));
     if (log) log.scrollTop = log.scrollHeight;
     if (i < full.length) {
-      chatTypeTimer = window.setTimeout(tick, i < 12 ? 18 : 11);
+      chatTypeTimer = window.setTimeout(tick, i < 30 ? 6 : 2);
       return;
     }
-    attachChatSources(el, sources);
+    done();
   };
   tick();
 }

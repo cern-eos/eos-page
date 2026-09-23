@@ -2210,6 +2210,42 @@ mark.kw {
   background: #fff;
   border: 1px solid var(--line);
 }
+.eos-chat-msg.is-md {
+  white-space: normal;
+}
+.eos-chat-msg.is-md p { margin: 0 0 0.55em; }
+.eos-chat-msg.is-md p:last-child { margin-bottom: 0; }
+.eos-chat-msg.is-md ul,
+.eos-chat-msg.is-md ol {
+  margin: 0.15em 0 0.55em;
+  padding-left: 1.2em;
+}
+.eos-chat-msg.is-md li { margin: 0.18em 0; }
+.eos-chat-msg.is-md a { color: var(--orange); }
+.eos-chat-msg.is-md strong { font-weight: 650; }
+.eos-chat-msg.is-md code,
+.eos-chat-msg.is-md .eos-chat-code {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.82em;
+}
+.eos-chat-msg.is-md code {
+  background: #f0f0f0;
+  padding: 0.08em 0.32em;
+  border-radius: 4px;
+}
+.eos-chat-msg.is-md .eos-chat-code {
+  margin: 0.35em 0 0.55em;
+  padding: 0.55em 0.65em;
+  overflow: auto;
+  background: #111;
+  color: #f4f1ea;
+  border-radius: 8px;
+}
+.eos-chat-msg.is-md .eos-chat-code code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
 .eos-chat-msg.is-error { color: #8a1f14; background: #fff3f1; }
 .eos-chat-msg.is-wait { color: var(--muted); font-style: italic; }
 .eos-chat-sources {
