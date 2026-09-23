@@ -2315,6 +2315,43 @@ function clearChat() {
   if (log) {
     log.innerHTML = `<p class="eos-chat-hello">Ask about EOS, CERNBox, CTA, docs or workshops.</p>`;
   }
+  syncChatExport();
+}
+
+function syncChatExport() {
+  const btn = $("#eos-chat")?.querySelector("[data-chat-export]");
+  if (btn) btn.disabled = !chatHistory.length;
+}
+
+function flashCopied(el, label) {
+  if (!el) return;
+  const prev = el.textContent;
+  el.classList.add("is-copied");
+  el.textContent = label || "Copied";
+  window.clearTimeout(Number(el.dataset.copyTimer || 0));
+  el.dataset.copyTimer = String(window.setTimeout(() => {
+    el.classList.remove("is-copied");
+    el.textContent = prev;
+  }, 1400));
+}
+
+function exportChat() {
+  if (!chatHistory.length) return;
+  const lines = ["# Ask EOS", "", `Exported ${new Date().toISOString().slice(0, 10)}`, ""];
+  for (const m of chatHistory) {
+    lines.push(m.role === "user" ? "## You" : "## Ask EOS");
+    lines.push("");
+    lines.push(String(m.text || "").trim());
+    lines.push("");
+  }
+  const stamp = new Date().toISOString().slice(0, 10);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" }));
+  a.download = `ask-eos-${stamp}.md`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 function setChatLarge(on) {
@@ -2450,8 +2487,27 @@ function renderChatMarkdown(raw) {
 function finishChatAnswer(el, text, sources) {
   if (!el) return;
   el.classList.add("is-md");
+  el.dataset.copy = String(text || "");
   el.innerHTML = renderChatMarkdown(text);
   attachChatSources(el, sources);
+  attachChatCopy(el);
+}
+
+function attachChatCopy(el) {
+  if (!el || el.querySelector(".eos-chat-copy")) return;
+  const bar = document.createElement("div");
+  bar.className = "eos-chat-msg-actions";
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "eos-chat-copy";
+  btn.textContent = "Copy";
+  btn.setAttribute("aria-label", "Copy this reply");
+  btn.addEventListener("click", async () => {
+    if (!(await copyText(el.dataset.copy || ""))) return;
+    flashCopied(btn, "Copied");
+  });
+  bar.appendChild(btn);
+  el.appendChild(bar);
 }
 
 function attachChatSources(el, sources) {
@@ -2473,24 +2529,38 @@ function typeChatAnswer(el, text, sources) {
   window.clearTimeout(chatTypeTimer);
   const log = $("#eos-chat-log");
   const full = String(text || "");
-  const done = () => {
-    finishChatAnswer(el, full, sources);
-    if (log) log.scrollTop = log.scrollHeight;
-  };
-  if (prefersQuiet() || !full) {
-    done();
-    return;
-  }
-  let i = 0;
-  const tick = () => {
-    i += i < 24 ? 6 : 18;
-    el.textContent = full.slice(0, Math.min(i, full.length));
-    if (log) log.scrollTop = log.scrollHeight;
-    if (i < full.length) {
-      chatTypeTimer = window.setTimeout(tick, i < 30 ? 6 : 2);
+  finishChatAnswer(el, full, sources);
+  if (log) log.scrollTop = log.scrollHeight;
+  if (prefersQuiet() || !full) return;
+  const nodes = [];
+  const walk = (n) => {
+    if (n.nodeType === 1 && n.matches(".eos-chat-sources, .eos-chat-msg-actions")) return;
+    if (n.nodeType === 3) {
+      if (n.parentElement?.closest(".eos-chat-sources, .eos-chat-msg-actions")) return;
+      nodes.push({ node: n, full: n.nodeValue || "" });
+      n.nodeValue = "";
       return;
     }
-    done();
+    n.childNodes.forEach(walk);
+  };
+  walk(el);
+  let ni = 0;
+  let ci = 0;
+  const tick = () => {
+    while (ni < nodes.length) {
+      const cur = nodes[ni];
+      ci += 18;
+      if (ci >= cur.full.length) {
+        cur.node.nodeValue = cur.full;
+        ni += 1;
+        ci = 0;
+        continue;
+      }
+      cur.node.nodeValue = cur.full.slice(0, ci);
+      break;
+    }
+    if (log) log.scrollTop = log.scrollHeight;
+    if (ni < nodes.length) chatTypeTimer = window.setTimeout(tick, 2);
   };
   tick();
 }
@@ -2501,8 +2571,10 @@ async function sendChat(form) {
   const q = String(input?.value || "").trim();
   if (!q) return;
   input.value = "";
+  setChatLarge(true);
   appendChat("user", q);
   chatHistory.push({ role: "user", text: q });
+  syncChatExport();
   chatBusy = true;
   chatPinned = true;
   form.querySelector("button").disabled = true;
@@ -2526,6 +2598,7 @@ async function sendChat(form) {
     const bot = appendChat("bot", "");
     typeChatAnswer(bot, data.text || "", data.sources);
     chatHistory.push({ role: "assistant", text: data.text || "" });
+    syncChatExport();
   } catch (err) {
     wait?.remove();
     const timedOut = err && (err.name === "AbortError" || /abort/i.test(String(err.message || "")));
@@ -2546,7 +2619,7 @@ function bindChat() {
     .then((data) => {
       const mode = root.querySelector("[data-chat-mode]");
       if (!mode) return;
-      if (data.openai) mode.textContent = "Ask EOS · OpenAI";
+      if (data.openai) mode.textContent = "Ask EOS · AI";
       else mode.textContent = "Ask EOS · live web search";
     })
     .catch(() => {});
@@ -2568,10 +2641,14 @@ function bindChat() {
     setChatLarge(false);
     setChatOpen(false, false);
   });
+  root.querySelector("[data-chat-export]")?.addEventListener("click", () => {
+    exportChat();
+  });
   root.querySelector("[data-chat-clear]")?.addEventListener("click", () => {
     if (chatBusy) return;
     clearChat();
   });
+  syncChatExport();
   root.querySelector("[data-chat-grow]")?.addEventListener("click", () => {
     setChatLarge(!root.classList.contains("is-large"));
   });

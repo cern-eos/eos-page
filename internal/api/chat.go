@@ -87,6 +87,11 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		writeError(w, status, publicChatError(msg))
 		return
 	}
+	if s.Store != nil {
+		if _, err := s.Store.AddChat(body.Message, reply.Text, s.Chat.ModelName(), clientIP(r)); err != nil {
+			log.Printf("ask eos: keep chat: %v", err)
+		}
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "text": reply.Text, "sources": reply.Sources})
 }
 

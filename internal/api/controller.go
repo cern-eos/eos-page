@@ -58,6 +58,7 @@ func (s *Server) handleControllerState(w http.ResponseWriter, r *http.Request) {
 	workshops, _ := s.Store.ListWorkshops(false)
 	subs, _ := s.Store.ListSubscribers()
 	inbox, _ := s.Store.ListInbox()
+	chats, _ := s.Store.ListChats(500)
 	writeJSON(w, http.StatusOK, map[string]any{
 		"settings":    settings,
 		"pages":       pages,
@@ -67,6 +68,7 @@ func (s *Server) handleControllerState(w http.ResponseWriter, r *http.Request) {
 		"workshops":   workshops,
 		"subscribers": subs,
 		"inbox":       inbox,
+		"chats":       chats,
 		"index":       s.Store.IndexStats(),
 	})
 }

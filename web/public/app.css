@@ -144,6 +144,74 @@ button, input, select, textarea { font: inherit; color: inherit; }
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.repo-btn,
+.top-icons .cern-logo {
+  position: relative;
+}
+.repo-btn[data-tip]::after,
+.top-icons .cern-logo[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 0.5rem);
+  transform: translateX(-50%) translateY(0.12rem);
+  padding: 0.28rem 0.5rem;
+  border-radius: 6px;
+  background: #141414;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.15;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+.repo-btn[data-tip]::before,
+.top-icons .cern-logo[data-tip]::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 0.22rem);
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #141414;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 41;
+}
+.top-icons .cern-logo[data-tip]::after {
+  left: auto;
+  right: 0;
+  transform: translateY(0.12rem);
+}
+.top-icons .cern-logo[data-tip]::before {
+  left: auto;
+  right: 0.85rem;
+  transform: none;
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 861px) {
+  .repo-btn[data-tip]:hover::after,
+  .repo-btn[data-tip]:focus-visible::after,
+  .top-icons .cern-logo[data-tip]:hover::after,
+  .top-icons .cern-logo[data-tip]:focus-visible::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .repo-btn[data-tip]:hover::before,
+  .repo-btn[data-tip]:focus-visible::before,
+  .top-icons .cern-logo[data-tip]:hover::before,
+  .top-icons .cern-logo[data-tip]:focus-visible::before {
+    opacity: 1;
+  }
+  .top-icons .cern-logo[data-tip]:hover::after,
+  .top-icons .cern-logo[data-tip]:focus-visible::after {
+    transform: translateY(0);
+  }
+}
 .menu-toggle {
   display: none;
   appearance: none;
@@ -2169,6 +2237,11 @@ mark.kw {
   opacity: 0.88;
 }
 .eos-chat-tool:hover { background: rgba(255, 255, 255, 0.12); opacity: 1; }
+.eos-chat-tool:disabled {
+  opacity: 0.32;
+  cursor: default;
+  pointer-events: none;
+}
 .eos-chat-tool svg { width: 1rem; height: 1rem; display: block; }
 .eos-chat.is-large .eos-chat-grow-icon,
 .eos-chat:not(.is-large) .eos-chat-shrink-icon { display: none; }
@@ -2260,6 +2333,30 @@ mark.kw {
   background: rgba(230, 92, 0, 0.1);
   border-radius: 999px;
   padding: 0.12rem 0.45rem;
+}
+.eos-chat-msg-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0.5rem 0 0;
+}
+.eos-chat-copy {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  padding: 0.16rem 0.55rem;
+  cursor: pointer;
+}
+.eos-chat-copy:hover {
+  color: var(--ink);
+  border-color: #bbb;
+}
+.eos-chat-copy.is-copied {
+  color: var(--ok);
+  border-color: var(--ok);
 }
 .eos-chat-form {
   display: grid;

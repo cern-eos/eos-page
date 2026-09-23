@@ -3,6 +3,7 @@ package store
 import (
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 type Page struct {
@@ -97,6 +98,15 @@ type InboxMsg struct {
 	Email     string `json:"email"`
 	Message   string `json:"message"`
 	CreatedAt string `json:"createdAt"`
+}
+
+type ChatTurn struct {
+	ID        string `json:"id"`
+	CreatedAt string `json:"createdAt"`
+	Question  string `json:"question"`
+	Answer    string `json:"answer"`
+	Model     string `json:"model"`
+	IP        string `json:"ip"`
 }
 
 func (s *Store) Page(id string) (Page, error) {
@@ -603,6 +613,53 @@ func (s *Store) ListInbox() ([]InboxMsg, error) {
 	for rows.Next() {
 		var m InboxMsg
 		if err := rows.Scan(&m.ID, &m.Kind, &m.Name, &m.Email, &m.Message, &m.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	return out, rows.Err()
+}
+
+func clipStored(s string, n int) string {
+	s = strings.TrimSpace(s)
+	if n <= 0 || utf8.RuneCountInString(s) <= n {
+		return s
+	}
+	return string([]rune(s)[:n])
+}
+
+func (s *Store) AddChat(question, answer, model, ip string) (ChatTurn, error) {
+	q := clipStored(question, 2000)
+	a := clipStored(answer, 20000)
+	if q == "" || a == "" {
+		return ChatTurn{}, ErrInvalid
+	}
+	msg := ChatTurn{
+		ID:        NewID(),
+		CreatedAt: nowISO(),
+		Question:  q,
+		Answer:    a,
+		Model:     clipStored(model, 80),
+		IP:        clipStored(ip, 80),
+	}
+	_, err := s.db.Exec(`INSERT INTO chats(id, created_at, question, answer, model, ip) VALUES(?,?,?,?,?,?)`,
+		msg.ID, msg.CreatedAt, msg.Question, msg.Answer, msg.Model, msg.IP)
+	return msg, err
+}
+
+func (s *Store) ListChats(limit int) ([]ChatTurn, error) {
+	if limit <= 0 || limit > 1000 {
+		limit = 500
+	}
+	rows, err := s.db.Query(`SELECT id, created_at, question, answer, model, ip FROM chats ORDER BY created_at DESC LIMIT ?`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []ChatTurn{}
+	for rows.Next() {
+		var m ChatTurn
+		if err := rows.Scan(&m.ID, &m.CreatedAt, &m.Question, &m.Answer, &m.Model, &m.IP); err != nil {
 			return nil, err
 		}
 		out = append(out, m)

@@ -280,6 +280,14 @@ CREATE TABLE IF NOT EXISTS inbox (
   message TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS chats (
+  id TEXT PRIMARY KEY,
+  created_at TEXT NOT NULL,
+  question TEXT NOT NULL DEFAULT '',
+  answer TEXT NOT NULL DEFAULT '',
+  model TEXT NOT NULL DEFAULT '',
+  ip TEXT NOT NULL DEFAULT ''
+);
 CREATE VIRTUAL TABLE IF NOT EXISTS talks_fts USING fts5(
   id UNINDEXED, title, abstract, speakers, session, year UNINDEXED,
   tokenize='porter'

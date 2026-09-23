@@ -107,3 +107,30 @@ func TestSearchTalksAndDocs(t *testing.T) {
 		t.Fatalf("commit search: %+v", hits)
 	}
 }
+
+func TestAddListChats(t *testing.T) {
+	dir := t.TempDir()
+	st, err := Open(filepath.Join(dir, "eos.db"), filepath.Join(dir, "media"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { st.Close() })
+
+	if _, err := st.AddChat("", "answer", "gpt-4o-mini", "127.0.0.1"); err != ErrInvalid {
+		t.Fatalf("empty question: %v", err)
+	}
+	got, err := st.AddChat("What is EOS used for?", "EOS Open Storage holds LHC data.", "gpt-4o-mini", "127.0.0.1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.ID == "" || got.Question != "What is EOS used for?" {
+		t.Fatalf("saved %+v", got)
+	}
+	list, err := st.ListChats(10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(list) != 1 || list[0].Answer != "EOS Open Storage holds LHC data." || list[0].Model != "gpt-4o-mini" {
+		t.Fatalf("list %+v", list)
+	}
+}

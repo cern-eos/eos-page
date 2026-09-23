@@ -170,6 +170,37 @@ function renderIndex() {
     <table><thead><tr><th>Year</th><th>Title</th><th>Place</th><th></th></tr></thead><tbody>${ws}</tbody></table>`;
 }
 
+function clipText(s, n) {
+  const t = String(s || "").replace(/\s+/g, " ").trim();
+  return t.length <= n ? t : t.slice(0, n - 1) + "…";
+}
+
+function renderChats() {
+  const rows = (state.chats || []).map((c) => `
+    <tr>
+      <td class="chat-when">${esc(c.createdAt)}</td>
+      <td>${esc(c.model || "")}</td>
+      <td>
+        <details>
+          <summary>${esc(clipText(c.question, 140) || "(empty)")}</summary>
+          <p class="muted">${esc(c.ip || "")}</p>
+          <p><strong>You</strong></p>
+          <pre class="chat-body">${esc(c.question)}</pre>
+          <p><strong>Ask EOS</strong></p>
+          <pre class="chat-body">${esc(c.answer)}</pre>
+        </details>
+      </td>
+      <td class="chat-preview">${esc(clipText(c.answer, 180))}</td>
+    </tr>`).join("");
+  return `
+    <h1>Ask EOS chats</h1>
+    <p class="muted">${(state.chats || []).length} stored ${(state.chats || []).length === 1 ? "exchange" : "exchanges"} (newest first).</p>
+    <table class="chats">
+      <thead><tr><th>When</th><th>Model</th><th>Question</th><th>Answer</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="4" class="muted">No chats yet.</td></tr>`}</tbody>
+    </table>`;
+}
+
 function renderInbox() {
   const rows = (state.inbox || []).map((m) => `
     <tr><td>${esc(m.createdAt)}</td><td>${esc(m.name)}</td><td>${esc(m.email)}</td><td>${esc(m.message)}</td></tr>`).join("");
@@ -195,6 +226,7 @@ function render() {
   if (tab === "team") panel.innerHTML = renderTeam();
   if (tab === "index") panel.innerHTML = renderIndex();
   if (tab === "inbox") panel.innerHTML = renderInbox();
+  if (tab === "chats") panel.innerHTML = renderChats();
 }
 
 function showGateError(msg) {

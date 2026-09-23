@@ -136,6 +136,13 @@ func (s *Server) serveFS(w http.ResponseWriter, r *http.Request, fsys fs.FS, nam
 			return
 		}
 	}
+	if fsys == s.ControllerFS {
+		disk := filepath.Join("web", "controller", filepath.FromSlash(name))
+		if st, err := os.Stat(disk); err == nil && !st.IsDir() {
+			http.ServeFile(w, r, disk)
+			return
+		}
+	}
 	data, err := fs.ReadFile(fsys, name)
 	if err != nil {
 		http.NotFound(w, r)

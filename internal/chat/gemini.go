@@ -102,6 +102,22 @@ func (c *Client) UsingOpenAI() bool {
 	return c.configuredOpenAI()
 }
 
+func (c *Client) ModelName() string {
+	if c == nil {
+		return ""
+	}
+	if c.configuredOpenAI() {
+		if c.openaiModel != "" {
+			return c.openaiModel
+		}
+		return defaultOpenAIModel
+	}
+	if c.api != nil {
+		return Model
+	}
+	return "web"
+}
+
 func (c *Client) Ask(ctx context.Context, question, siteContext string, history []Message) (Reply, error) {
 	if c == nil {
 		return Reply{}, fmt.Errorf("chat is not configured")
