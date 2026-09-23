@@ -30,13 +30,27 @@ type Reply struct {
 	Sources []Source `json:"sources,omitempty"`
 }
 
-type Client struct {
-	api *genai.Client
+type Options struct {
+	OpenAIKey   string
+	OpenAIModel string
+	GeminiKey   string
+	OpsDocsPath string
 }
 
-func New(ctx context.Context, apiKey string) (*Client, error) {
-	c := &Client{}
-	apiKey = strings.TrimSpace(apiKey)
+type Client struct {
+	openaiKey   string
+	openaiModel string
+	api         *genai.Client
+	ops         *opsIndex
+}
+
+func New(ctx context.Context, opt Options) (*Client, error) {
+	c := &Client{
+		openaiKey:   strings.TrimSpace(opt.OpenAIKey),
+		openaiModel: strings.TrimSpace(opt.OpenAIModel),
+		ops:         loadOpsDocs(opt.OpsDocsPath),
+	}
+	apiKey := strings.TrimSpace(opt.GeminiKey)
 	if apiKey == "" {
 		return c, nil
 	}
@@ -84,6 +98,10 @@ func ClipHistory(in []Message) []Message {
 	return out
 }
 
+func (c *Client) UsingOpenAI() bool {
+	return c.configuredOpenAI()
+}
+
 func (c *Client) Ask(ctx context.Context, question, siteContext string, history []Message) (Reply, error) {
 	if c == nil {
 		return Reply{}, fmt.Errorf("chat is not configured")
@@ -91,6 +109,13 @@ func (c *Client) Ask(ctx context.Context, question, siteContext string, history 
 	q, err := ClipQuestion(question)
 	if err != nil {
 		return Reply{}, err
+	}
+	if c.configuredOpenAI() {
+		reply, oerr := c.askOpenAI(ctx, q, siteContext, history)
+		if oerr == nil && strings.TrimSpace(reply.Text) != "" {
+			return reply, nil
+		}
+		logOpenAIFallback(oerr)
 	}
 	ai, webText, webSources, searchErr := liveSearch(ctx, q)
 	if c.api == nil {

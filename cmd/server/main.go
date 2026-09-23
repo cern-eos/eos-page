@@ -64,9 +64,21 @@ func main() {
 	if geminiKey == "" {
 		geminiKey = strings.TrimSpace(os.Getenv("GOOGLE_API_KEY"))
 	}
-	ask, err := chat.New(context.Background(), geminiKey)
+	openAIKey := strings.TrimSpace(os.Getenv("OPENAI_API_KEY"))
+	ask, err := chat.New(context.Background(), chat.Options{
+		OpenAIKey:   openAIKey,
+		OpenAIModel: strings.TrimSpace(os.Getenv("OPENAI_MODEL")),
+		GeminiKey:   geminiKey,
+		OpsDocsPath: filepath.Join(dataDir, "all_docs.md"),
+	})
 	if err != nil {
-		log.Printf("warning: Ask EOS Gemini client: %v - answers will use Chrome Google search only", err)
+		log.Printf("warning: Ask EOS client: %v - answers will use web search only", err)
+	} else if openAIKey != "" {
+		model := strings.TrimSpace(os.Getenv("OPENAI_MODEL"))
+		if model == "" {
+			model = "gpt-4o-mini"
+		}
+		log.Printf("Ask EOS chat: OpenAI %s (EOS/CTA/XRootD only)", model)
 	} else if ask != nil && geminiKey != "" {
 		log.Printf("Ask EOS chat: Gemini %s with live web search", chat.Model)
 	} else {

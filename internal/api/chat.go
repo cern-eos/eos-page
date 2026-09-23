@@ -53,7 +53,7 @@ func clientIP(r *http.Request) string {
 }
 
 func (s *Server) handleChatStatus(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "enabled": s.Chat != nil})
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "enabled": s.Chat != nil, "openai": s.Chat != nil && s.Chat.UsingOpenAI()})
 }
 
 func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {

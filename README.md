@@ -102,9 +102,10 @@ go test ./...
 ### Ask EOS
 
 - Floating chat on every page
-- Answers from live web search by default (Bing, then DuckDuckGo HTML). Optional official Google CSE if `GOOGLE_CSE_*` is set
-- Chrome / Google AI Mode only when `CHAT_SEARCH_CHROME=1` or `CHAT_SEARCH_HEADED=1` (often captcha-blocked)
-- Optional Gemini 2.5 Flash rewrite when an API key is set
+- OpenAI chat when `OPENAI_API_KEY` is set. Answers are limited to EOS, CTA, and XRootD storage
+- Fetches formatted documentation from eos-docs.web.cern.ch, xrootd.org, and cta.web.cern.ch
+- Uses `data/all_docs.md` (EOS operator docs) as searchable context
+- Falls back to live web search, optional Google CSE, or Gemini if OpenAI is unset or fails
 - Source links, enlarge, and clear
 
 ## Controller
@@ -118,7 +119,9 @@ Hero copy, stats, cards, and people are editable. The **Index** tab can refresh 
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `CONTROLLER_SECRET` | _(empty)_ | Shared secret for `/controller` |
-| `GEMINI_API_KEY` / `GOOGLE_API_KEY` | _(empty)_ | Optional Gemini rewrite of the Ask EOS answer |
+| `OPENAI_API_KEY` | _(empty)_ | Ask EOS talks to OpenAI (`gpt-4o-mini` by default) |
+| `OPENAI_MODEL` | `gpt-4o-mini` | OpenAI chat model |
+| `GEMINI_API_KEY` / `GOOGLE_API_KEY` | _(empty)_ | Optional Gemini fallback if OpenAI is unset |
 | `CHAT_SEARCH_HEADED` | _(empty)_ | `1` opens a visible Chrome window for Google AI Mode |
 | `CHAT_SEARCH_CHROME` | _(empty)_ | `1` also tries headless Chrome Google (often captcha-blocked) |
 | `CHAT_CHROME_PROFILE` | `data/chrome-profile` | Persistent Chrome profile (cookies / consent) |

@@ -30,12 +30,15 @@ func TestClipHistory(t *testing.T) {
 }
 
 func TestNewWithoutKey(t *testing.T) {
-	c, err := New(context.Background(), "")
+	c, err := New(context.Background(), Options{})
 	if err != nil || c == nil {
 		t.Fatalf("expected search-only client, got %v %v", c, err)
 	}
 	if c.api != nil {
 		t.Fatal("expected no Gemini client")
+	}
+	if c.configuredOpenAI() {
+		t.Fatal("expected no OpenAI client")
 	}
 }
 
