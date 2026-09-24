@@ -301,7 +301,7 @@ body.is-wall .page-stage {
 .hero-inner {
   position: relative;
   z-index: 2;
-  width: min(1120px, calc(100% - 2rem));
+  width: min(1280px, calc(100% - 2rem));
   margin: 0 auto;
   padding: 1.35rem 0 3.4rem;
 }
@@ -331,6 +331,273 @@ body.is-wall .page-stage {
   margin-right: -2.2rem;
   margin-left: calc(1.4rem + 5%);
   gap: 0;
+}
+.orbit-slot.is-lhc {
+  flex: 0 0 clamp(16rem, 35.2vw, 27.2rem);
+  width: clamp(16rem, 35.2vw, 27.2rem);
+  margin: 0;
+  overflow: visible;
+}
+.lhc-stage {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.1rem;
+  flex: 0 0 auto;
+}
+.lhc-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 6.4rem;
+  padding-top: 2.4rem;
+  color: #d8d8d8;
+  text-align: center;
+}
+.lhc-stack-kicker,
+.lhc-stack-note {
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #d2d2d2;
+}
+.lhc-stack-year {
+  margin: 0 0 0.2rem;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #f2f2f2;
+}
+.lhc-stack-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: #f2f2f2;
+}
+.lhc-stack-silo {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 3px;
+  width: 2.55rem;
+  height: 16.5rem;
+  margin: 0.55rem 0 0.7rem;
+  padding: 5px 5px;
+  border-radius: 8px;
+  background: #111;
+  box-shadow: inset 0 0 0 1px #333, 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+.lhc-stack-brick {
+  position: relative;
+  flex: 1 1 0;
+  display: block;
+  border-radius: 2px;
+  background: #1c1c1c;
+  overflow: hidden;
+}
+.lhc-stack-brick::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--fill, 0) * 100%);
+  background: linear-gradient(90deg, #c45c18, #e68a2e 45%, #ffc46a);
+}
+.lhc-stack-eb {
+  margin: 0;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #ffb067;
+}
+.lhc-stack-month {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: #f4f1ea;
+}
+.lhc-stack-count {
+  margin: 0.12rem 0 0.35rem;
+  font-size: 0.72rem;
+  color: #d2d2d2;
+}
+.lhc-stack-count b {
+  color: #f4f1ea;
+  font-weight: 600;
+}
+.lhc-scene,
+.lhc-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.lhc-disc { fill: rgba(255, 255, 255, 0.03); }
+.lhc-tube-fill {
+  fill: none;
+  stroke: rgba(168, 174, 182, 0.2);
+  stroke-width: 28;
+}
+.lhc-tube-outer,
+.lhc-tube-inner {
+  fill: none;
+  stroke: #c5cad0;
+  stroke-width: 2.2;
+}
+.lhc-beam-pipe {
+  fill: none;
+  stroke-width: 1.15;
+}
+.lhc-beam-pipe.is-cw { stroke: rgba(120, 190, 255, 0.5); }
+.lhc-beam-pipe.is-ccw { stroke: rgba(255, 140, 64, 0.5); }
+.lhc-tick { stroke: #9aa3ad; stroke-width: 1.4; }
+.lhc-cavern line {
+  stroke: #b4bac0;
+  stroke-width: 3.4;
+  stroke-linecap: round;
+}
+.lhc-cavern circle { fill: #d2d6da; }
+.lhc-beam { transform-origin: 390px 390px; }
+.lhc-beam.is-cw { animation: lhc-spin 8s linear infinite; }
+.lhc-beam.is-ccw { animation: lhc-spin 8s linear infinite reverse; }
+@keyframes lhc-spin {
+  to { transform: rotate(360deg); }
+}
+.lhc-data-line {
+  fill: none;
+  stroke: rgba(230, 92, 0, 0.4);
+  stroke-width: calc(0.85px + var(--flow, 1) * 1.35px);
+  stroke-dasharray: 5 7;
+  stroke-linecap: round;
+  animation: lhc-dash 0.85s linear infinite;
+}
+.lhc-data.is-globe .lhc-data-line {
+  stroke: rgba(230, 92, 0, 0.58);
+  stroke-width: calc(2px + var(--flow, 1) * 2.4px);
+  stroke-dasharray: 7 8;
+  animation-duration: 0.7s;
+}
+@keyframes lhc-dash {
+  to { stroke-dashoffset: -24; }
+}
+.lhc-packet {
+  fill: #ffb067;
+  stroke: #fff3e0;
+  stroke-width: 0.35;
+}
+.lhc-packet.is-out { fill: #7ec8ff; stroke: #e8f4ff; }
+.lhc-packet.is-tape { fill: #e0b25a; stroke: #fff3d0; }
+.lhc-data.is-cta .lhc-data-line {
+  stroke: rgba(196, 163, 90, 0.7);
+  stroke-width: calc(1.6px + var(--flow, 1) * 1.8px);
+}
+.lhc-rate {
+  fill: #ffb067;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  text-anchor: middle;
+}
+.lhc-rate.is-out { fill: #9ad4ff; }
+.lhc-rate.is-tape { fill: #e0b25a; }
+.lhc-eos-spin {
+  transform-origin: 0px 0px;
+  animation: lhc-spin 5s linear infinite;
+}
+.lhc-globe-map {
+  transform-origin: 0px 0px;
+  animation: lhc-globe-turn 20s linear infinite;
+}
+@keyframes lhc-globe-turn {
+  from { transform: translate(-76px, 0); }
+  to { transform: translate(-228px, 0); }
+}
+.lhc-comet-path {
+  fill: none;
+  stroke: rgba(255, 210, 150, 0.16);
+  stroke-width: 0.7;
+  stroke-dasharray: 2 4;
+}
+.lhc-comet-arm {
+  transform-origin: 0px 0px;
+  animation: lhc-comet 4.2s linear infinite;
+}
+@keyframes lhc-comet {
+  to { transform: rotate(-360deg); }
+}
+.lhc-comet-head { fill: #fff6d8; }
+.lhc-comet-glow { fill: rgba(255, 176, 80, 0.42); }
+.lhc-comet-tail { fill: rgba(255, 196, 110, 0.5); }
+.lhc-globe-rim { fill: none; stroke: #8ec4e8; stroke-width: 1.35; }
+.lhc-globe-lat,
+.lhc-globe-lon {
+  fill: none;
+  stroke: rgba(200, 230, 255, 0.22);
+  stroke-width: 0.9;
+}
+.lhc-globe-lat.is-tropic { stroke: rgba(200, 230, 255, 0.12); }
+.lhc-globe-land { fill: #4ea35a; }
+.lhc-globe-ice { fill: #e8f2f8; }
+.lhc-det-name {
+  fill: #f4f1ea;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-anchor: middle;
+  letter-spacing: 0.08em;
+}
+.lhc-det-name.is-wlcg {
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+}
+.lhc-run-title {
+  fill: url(#lhc-run-grad);
+  font-family: Caveat, "Segoe Script", "Comic Sans MS", cursive;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+.lhc-hit .collide-flash,
+.lhc-hit .collide-shower {
+  transform-origin: var(--hx) var(--hy);
+  transform-box: view-box;
+  animation-duration: 3.4s;
+  animation-delay: var(--d, 0s);
+}
+.lhc-hit .collide-flash { animation-name: lhc-flash; }
+.lhc-hit .collide-shower { animation-name: lhc-shower; }
+.lhc-hit .collide-photon,
+.lhc-hit .collide-electron {
+  animation: lhc-draw 3.4s linear infinite;
+  animation-delay: var(--d, 0s);
+}
+.lhc-hit .collide-spark {
+  animation: lhc-spark 3.4s linear infinite;
+  animation-delay: var(--d, 0s);
+}
+@keyframes lhc-flash {
+  0%, 6% { opacity: 0; transform: scale(0.2); }
+  12% { opacity: 1; transform: scale(1.08); }
+  26% { opacity: 0; transform: scale(2.2); }
+  100% { opacity: 0; transform: scale(2.2); }
+}
+@keyframes lhc-shower {
+  0%, 8% { opacity: 0; transform: scale(0.12); }
+  16% { opacity: 1; transform: scale(0.72); }
+  30% { opacity: 1; transform: scale(1); }
+  46% { opacity: 0; transform: scale(1.12); }
+  100% { opacity: 0; transform: scale(1.12); }
+}
+@keyframes lhc-draw {
+  0%, 8% { stroke-dasharray: 90; stroke-dashoffset: 90; }
+  20% { stroke-dasharray: 90; stroke-dashoffset: 10; }
+  34%, 100% { stroke-dasharray: 90; stroke-dashoffset: 0; }
+}
+@keyframes lhc-spark {
+  0%, 10% { opacity: 0; }
+  16% { opacity: 1; }
+  32% { opacity: 0; }
+  100% { opacity: 0; }
 }
 .orbit-frame {
   position: relative;
@@ -1009,6 +1276,9 @@ button.hero-term { text-align: left; }
   align-items: center;
   gap: 0.22em;
   overflow: visible;
+}
+@media (min-width: 861px) {
+  .hero h1, .title-loupe { flex-wrap: nowrap; }
 }
 .title-word { display: inline-flex; position: relative; z-index: 1; }
 .title-letter {
@@ -2485,9 +2755,20 @@ mark.kw {
   .orbit-wind-arm,
   .orbit-wind-rings ellipse,
   .orbit-collide { animation: none; display: none; }
-  .orbit-frame,
-  .orbit-slot { display: none; animation: none; }
+  .orbit-frame { display: none; animation: none; }
+  .orbit-slot:not(.is-lhc) { display: none; animation: none; }
   .orbit-slot:hover .orbit-frame { transform: none; }
+  .lhc-beam,
+  .lhc-eos-spin,
+  .lhc-comet-arm,
+  .lhc-globe-map,
+  .lhc-hit .collide-flash,
+  .lhc-hit .collide-shower,
+  .lhc-hit .collide-photon,
+  .lhc-hit .collide-electron,
+  .lhc-hit .collide-spark { animation: none; }
+  .lhc-packet { display: none; }
+  .lhc-data-line { animation: none; }
   #app { transition: none; }
   .title-letter, .title-letter.sprayed, .title-letter.wet { transform: none; transition: none; }
   .title-spray, .title-spark, .title-glints { display: none; }
@@ -2522,6 +2803,14 @@ mark.kw {
     margin-right: 0;
     transform: none;
     gap: 0;
+  }
+  .orbit-slot.is-lhc {
+    width: min(19.2rem, 88vw);
+    margin: 0 auto;
+  }
+  .lhc-stage {
+    width: 100%;
+    justify-content: center;
   }
   .title-loupe .diopside {
     margin-left: 0.28em;

@@ -627,6 +627,101 @@ function stopCollision() {
   collideAc = null;
 }
 
+let lhcFlowRaf = 0;
+
+function stopLhcFlow() {
+  cancelAnimationFrame(lhcFlowRaf);
+  lhcFlowRaf = 0;
+}
+
+function lhcInboundRate(t, peak, phase) {
+  const cycle = 48;
+  const u = (((t + phase) % cycle) + cycle) % cycle / cycle;
+  const hold = 0.1;
+  const d = u < hold ? 0 : (u - hold) / (1 - hold);
+  const env = peak + (60 - peak) * (d * d * (3 - 2 * d));
+  const wobble = Math.sin((t + phase) * 0.38) * 2.4 + Math.sin((t + phase) * 0.15 + 0.7) * 1.6;
+  return Math.max(56, env + wobble);
+}
+
+function lhcSteadyRate(t, center, wobble) {
+  return center + Math.sin(t * 0.32) * wobble * 0.7 + Math.sin(t * 0.11) * wobble * 0.3;
+}
+
+function lhcGlobeRate(t) {
+  return lhcSteadyRate(t, 50, 2);
+}
+
+function lhcCtaRate(t) {
+  return lhcSteadyRate(t + 1.4, 100, 2.5);
+}
+
+function startLhcFlow() {
+  stopLhcFlow();
+  const root = document.querySelector(".lhc-map");
+  const stackHost = document.querySelector(".lhc-stack");
+  if ((!root && !stackHost) || prefersQuiet()) return;
+  const flows = [...(root?.querySelectorAll("[data-lhc-flow]") || [])].map((el) => {
+    const path = el.querySelector(".lhc-data-line");
+    if (!path) return null;
+    return {
+      el,
+      path,
+      packets: [...el.querySelectorAll(".lhc-packet")],
+      label: el.querySelector("[data-lhc-rate]"),
+      len: path.getTotalLength(),
+      travel: 0,
+    };
+  }).filter(Boolean);
+  const stackBricks = [...document.querySelectorAll("[data-lhc-brick]")];
+  const stackEb = document.querySelector("[data-lhc-stack-eb]");
+  const stackMonth = document.querySelector("[data-lhc-stack-month]");
+  const t0 = performance.now();
+  let last = t0;
+  const tick = (now) => {
+    if (!document.contains(root) && !document.contains(stackEb)) {
+      stopLhcFlow();
+      return;
+    }
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    const t = (now - t0) / 1000;
+    for (const flow of flows) {
+      const peak = Number(flow.el.dataset.peak || 100);
+      const phase = Number(flow.el.dataset.phase || 0);
+      const kind = flow.el.dataset.lhcFlow;
+      const rate = kind === "globe" ? lhcGlobeRate(t)
+        : kind === "cta" ? lhcCtaRate(t)
+        : lhcInboundRate(t, peak, phase);
+      if (flow.label) flow.label.textContent = `${Math.round(rate)} GB/s`;
+      const k = Math.max(0.55, rate / peak);
+      flow.el.style.setProperty("--flow", k.toFixed(3));
+      flow.travel += dt * (0.2 + 0.1 * k);
+      const n = flow.packets.length;
+      flow.packets.forEach((p, i) => {
+        const u = ((flow.travel + i / n) % 1 + 1) % 1;
+        const here = u * flow.len;
+        const pt = flow.path.getPointAtLength(here);
+        const ahead = flow.path.getPointAtLength(Math.min(flow.len, here + 8));
+        const ang = Math.atan2(ahead.y - pt.y, ahead.x - pt.x) * 180 / Math.PI;
+        p.setAttribute("transform", `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)}) rotate(${ang.toFixed(1)})`);
+        const fade = u < 0.05 ? u / 0.05 : u > 0.95 ? (1 - u) / 0.05 : 1;
+        p.setAttribute("opacity", fade.toFixed(2));
+      });
+    }
+    const u = (t % 30) / 30;
+    const eb = u * 1;
+    const month = Math.min(11, Math.floor(u * 12));
+    if (stackEb) stackEb.textContent = `${eb.toFixed(2)} EB`;
+    if (stackMonth) stackMonth.textContent = `Month ${month + 1}`;
+    stackBricks.forEach((b, i) => {
+      b.style.setProperty("--fill", String(Math.max(0, Math.min(1, u * 12 - i))));
+    });
+    lhcFlowRaf = requestAnimationFrame(tick);
+  };
+  lhcFlowRaf = requestAnimationFrame(tick);
+}
+
 let orbitAlignAc = null;
 
 function stopOrbitAlign() {
@@ -1160,7 +1255,71 @@ function orbitSkyMarkup() {
   return `<svg class="orbit-sky" viewBox="0 0 200 200" aria-hidden="true">${dots.join("")}</svg>`;
 }
 
-function collisionMarkup() {
+function globeLandStrip() {
+  return `
+    <path class="lhc-globe-land" d="M20,-8 C28,-20 44,-18 48,-4 C46,6 36,12 28,8 C18,2 16,2 20,-8z"/>
+    <path class="lhc-globe-land" d="M32,8 C40,12 42,24 36,30 C28,24 26,14 32,8z"/>
+    <path class="lhc-globe-land" d="M66,-16 C76,-18 84,-8 78,-2 C70,0 64,-6 66,-16z"/>
+    <path class="lhc-globe-land" d="M68,-2 C80,-4 88,12 78,24 C66,18 62,6 68,-2z"/>
+    <path class="lhc-globe-land" d="M88,-12 C108,-20 130,-8 128,6 C112,10 94,6 88,-12z"/>
+    <path class="lhc-globe-land" d="M122,12 C132,10 140,18 132,22 C124,22 118,16 122,12z"/>
+    <path class="lhc-globe-ice" d="M0,-36 h152 v10 C110,-28 40,-28 0,-26z"/>
+    <path class="lhc-globe-ice" d="M0,28 C48,24 112,24 152,28 v10 H0z"/>`;
+}
+
+function detectorArt(id) {
+  if (id === "atlas") {
+    return `<g class="lhc-det-art">
+      <ellipse cx="0" cy="0" rx="46" ry="23" fill="none" stroke="#8ea0b6" stroke-width="3.2"/>
+      <ellipse cx="0" cy="0" rx="40" ry="19" fill="none" stroke="#6d7e92" stroke-width="2"/>
+      <rect x="-29" y="-16" width="6" height="32" rx="1.2" fill="#7b8b9c"/>
+      <rect x="23" y="-16" width="6" height="32" rx="1.2" fill="#7b8b9c"/>
+      <rect x="-22" y="-13" width="44" height="26" rx="4" fill="#3c4c60"/>
+      <rect x="-17" y="-9" width="34" height="18" rx="3" fill="#c4a35a"/>
+      <rect x="-11" y="-5" width="22" height="10" rx="2" fill="#5b8fc7"/>
+      <line x1="-48" y1="0" x2="48" y2="0" stroke="#9ad4ff" stroke-width="1.1"/>
+    </g>`;
+  }
+  if (id === "cms") {
+    return `<g class="lhc-det-art">
+      <rect x="-27" y="-17" width="6" height="34" fill="#6b1818"/>
+      <rect x="21" y="-17" width="6" height="34" fill="#6b1818"/>
+      <rect x="-21" y="-18" width="42" height="36" rx="3" fill="#8b1e1e"/>
+      <rect x="-16" y="-13" width="32" height="26" rx="2" fill="#c43c2c"/>
+      <rect x="-11" y="-8" width="22" height="16" rx="2" fill="#e8c56a"/>
+      <rect x="-7" y="-4" width="14" height="8" rx="1.2" fill="#4a6a88"/>
+      <line x1="-36" y1="0" x2="36" y2="0" stroke="#ffb078" stroke-width="1.1"/>
+    </g>`;
+  }
+  if (id === "alice") {
+    return `<g class="lhc-det-art">
+      <polygon points="-8,-20 12,-16 20,-4 16,16 -2,22 -20,14 -24,-2 -18,-16" fill="#b42318"/>
+      <ellipse cx="-4" cy="0" rx="13" ry="11" fill="#2a8f9a"/>
+      <ellipse cx="-4" cy="0" rx="7" ry="6" fill="#5ec8d4"/>
+      <rect x="14" y="-9" width="7" height="18" fill="#5a5a5a"/>
+      <rect x="23" y="-13" width="6" height="26" fill="#3d3d3d"/>
+      <rect x="31" y="-16" width="5" height="32" fill="#2a2a2a"/>
+      <line x1="-30" y1="0" x2="38" y2="0" stroke="#9ad4ff" stroke-width="1.1"/>
+    </g>`;
+  }
+  return `<g class="lhc-det-art">
+    <circle cx="-34" cy="0" r="4.2" fill="#6aa4d8"/>
+    <rect x="-26" y="-9" width="4" height="18" fill="#7eb8e8"/>
+    <rect x="-18" y="-14" width="6" height="28" rx="1" fill="#c45c28"/>
+    <rect x="-8" y="-11" width="3" height="22" fill="#8ec4f0"/>
+    <rect x="-2" y="-12" width="3" height="24" fill="#8ec4f0"/>
+    <rect x="5" y="-15" width="6" height="30" fill="#d4b44a"/>
+    <rect x="14" y="-17" width="7" height="34" fill="#8a6a3a"/>
+    <rect x="24" y="-19" width="4" height="38" fill="#555"/>
+    <rect x="30" y="-19" width="4" height="38" fill="#444"/>
+    <line x1="-42" y1="0" x2="38" y2="0" stroke="#9ad4ff" stroke-width="1.1"/>
+  </g>`;
+}
+
+function lhcMarkup() {
+  const CX = 390;
+  const CY = 390;
+  const R = 228;
   const rnd = (seed0) => {
     let seed = seed0;
     return () => {
@@ -1168,24 +1327,27 @@ function collisionMarkup() {
       return (seed - 1) / 2147483646;
     };
   };
+  const polar = (deg, r) => {
+    const a = deg * Math.PI / 180;
+    return [CX + r * Math.cos(a), CY - r * Math.sin(a)];
+  };
   const bunch = (cls, seed0) => {
     const r = rnd(seed0);
     const dots = [];
-    for (let i = 0; i < 26; i++) {
-      const x = (r() - 0.5) * 36;
-      const y = (r() - 0.5) * 8.5;
-      const rad = 0.45 + r() * 0.9;
-      dots.push(`<circle class="collide-proton" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rad.toFixed(2)}"/>`);
+    for (let i = 0; i < 16; i++) {
+      const x = (r() - 0.5) * 16;
+      const y = (r() - 0.5) * 4.2;
+      dots.push(`<circle class="collide-proton" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(0.32 + r() * 0.55).toFixed(2)}"/>`);
     }
     return `
-      <g class="collide-bunch ${cls}">
-        <ellipse class="collide-bunch-trail" cx="-18" cy="0" rx="22" ry="5.2"/>
-        <ellipse class="collide-bunch-halo" cx="0" cy="0" rx="26" ry="8.5"/>
-        <ellipse class="collide-bunch-core" cx="0" cy="0" rx="14" ry="3.8"/>
+      <g class="lhc-bunch-body ${cls}">
+        <ellipse class="collide-bunch-trail" cx="-7" cy="0" rx="10" ry="2.2"/>
+        <ellipse class="collide-bunch-halo" cx="0" cy="0" rx="11" ry="3.4"/>
+        <ellipse class="collide-bunch-core" cx="0" cy="0" rx="6.2" ry="1.6"/>
         ${dots.join("")}
       </g>`;
   };
-  const shower = (axisDeg, cls, seed0) => {
+  const shower = (ox, oy, axisDeg, cls, seed0) => {
     const r = rnd(seed0);
     const ax = axisDeg * Math.PI / 180;
     const parts = [];
@@ -1201,34 +1363,153 @@ function collisionMarkup() {
     const addElectron = (x1, y1, ang, len, depth, bend) => {
       const x2 = x1 + Math.cos(ang) * len;
       const y2 = y1 + Math.sin(ang) * len;
-      const mx = x1 + Math.cos(ang) * len * 0.48 - Math.sin(ang) * (4.2 + depth) * bend;
-      const my = y1 + Math.sin(ang) * len * 0.48 + Math.cos(ang) * (4.2 + depth) * bend;
+      const mx = x1 + Math.cos(ang) * len * 0.48 - Math.sin(ang) * (3.6 + depth) * bend;
+      const my = y1 + Math.sin(ang) * len * 0.48 + Math.cos(ang) * (3.6 + depth) * bend;
       parts.push(`<path class="collide-electron d${depth}" d="M${x1.toFixed(1)} ${y1.toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}"/>`);
       if (depth < 3) {
         addPhoton(x1 + (x2 - x1) * 0.42, y1 + (y2 - y1) * 0.42, ang + 0.2 * bend, len * 0.52, depth + 1);
         if (depth < 2) addPhoton(x2, y2, ang - 0.1 * bend, len * 0.38, depth + 1);
       }
     };
-    addPhoton(200, 100, ax - 0.09, 40, 0);
-    addPhoton(200, 100, ax + 0.11, 44, 0);
-    addElectron(200, 100, ax + 0.24, 32, 0, 1);
-    addElectron(200, 100, ax - 0.26, 30, 0, -1);
-    const gx = 200 + Math.cos(ax) * 38;
-    const gy = 100 + Math.sin(ax) * 38;
-    parts.unshift(`<ellipse class="collide-shower-glow" cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" rx="40" ry="15" transform="rotate(${axisDeg.toFixed(1)} ${gx.toFixed(1)} ${gy.toFixed(1)})"/>`);
-    for (let i = 0; i < 7; i++) {
+    addPhoton(ox, oy, ax - 0.09, 34, 0);
+    addPhoton(ox, oy, ax + 0.11, 38, 0);
+    addElectron(ox, oy, ax + 0.24, 28, 0, 1);
+    addElectron(ox, oy, ax - 0.26, 26, 0, -1);
+    const gx = ox + Math.cos(ax) * 28;
+    const gy = oy + Math.sin(ax) * 28;
+    parts.unshift(`<ellipse class="collide-shower-glow" cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" rx="32" ry="12" transform="rotate(${axisDeg.toFixed(1)} ${gx.toFixed(1)} ${gy.toFixed(1)})"/>`);
+    for (let i = 0; i < 6; i++) {
       const a = ax + (r() - 0.5) * 0.7;
-      const d = 18 + r() * 48;
-      parts.push(`<circle class="collide-spark d${i % 3}" cx="${(200 + Math.cos(a) * d).toFixed(1)}" cy="${(100 + Math.sin(a) * d).toFixed(1)}" r="${(0.55 + r() * 0.7).toFixed(2)}"/>`);
+      const d = 12 + r() * 36;
+      parts.push(`<circle class="collide-spark d${i % 3}" cx="${(ox + Math.cos(a) * d).toFixed(1)}" cy="${(oy + Math.sin(a) * d).toFixed(1)}" r="${(0.45 + r() * 0.6).toFixed(2)}"/>`);
     }
     return `<g class="collide-shower ${cls}">${parts.join("")}</g>`;
   };
-  const rays = Array.from({ length: 10 }, (_, i) => {
-    const a = (i / 10) * Math.PI * 2;
-    return `<line class="collide-flash-ray" x1="${(200 + Math.cos(a) * 4).toFixed(1)}" y1="${(100 + Math.sin(a) * 4).toFixed(1)}" x2="${(200 + Math.cos(a) * 22).toFixed(1)}" y2="${(100 + Math.sin(a) * 22).toFixed(1)}"/>`;
+  const flash = (ox, oy) => {
+    const rays = Array.from({ length: 10 }, (_, i) => {
+      const a = (i / 10) * Math.PI * 2;
+      return `<line class="collide-flash-ray" x1="${(ox + Math.cos(a) * 3).toFixed(1)}" y1="${(oy + Math.sin(a) * 3).toFixed(1)}" x2="${(ox + Math.cos(a) * 16).toFixed(1)}" y2="${(oy + Math.sin(a) * 16).toFixed(1)}"/>`;
+    }).join("");
+    return `
+      <g class="collide-flash">
+        <circle class="collide-flash-core" cx="${ox}" cy="${oy}" r="12" fill="url(#collide-flash-g)"/>
+        <g filter="url(#collide-soft)">${rays}</g>
+      </g>`;
+  };
+  const ips = [
+    { id: "cms", deg: 58 },
+    { id: "alice", deg: 178 },
+    { id: "atlas", deg: 268 },
+    { id: "lhcb", deg: 318 },
+  ];
+  const nBunch = 16;
+  const beams = ["cw", "ccw"].map((dir, bi) => {
+    const rBeam = dir === "cw" ? 220 : 236;
+    const rot = dir === "cw" ? 90 : -90;
+    const arms = Array.from({ length: nBunch }, (_, i) => {
+      const ang = (i * 360) / nBunch;
+      return `<g transform="rotate(${ang} ${CX} ${CY})">
+        <g transform="translate(${CX + rBeam} ${CY}) rotate(${rot})">${bunch(dir === "cw" ? "is-l" : "is-r", 17 + bi * 40 + i * 3)}</g>
+      </g>`;
+    }).join("");
+    return `<g class="lhc-beam is-${dir}">${arms}</g>`;
   }).join("");
+  const names = { cms: "CMS", alice: "ALICE", atlas: "ATLAS", lhcb: "LHCb" };
+  const dets = ips.map((ip) => {
+    const [x, y] = polar(ip.deg, R);
+    const [nx, ny] = polar(ip.deg, R + 40);
+    const rad = ip.deg * Math.PI / 180;
+    const tangent = Math.atan2(-Math.cos(rad), -Math.sin(rad)) * 180 / Math.PI;
+    return `<g class="lhc-exp is-${ip.id}">
+      <g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${tangent.toFixed(1)}) scale(0.72)">${detectorArt(ip.id)}</g>
+      <text class="lhc-det-name" x="${nx.toFixed(1)}" y="${(ny + 4).toFixed(1)}">${names[ip.id]}</text>
+    </g>`;
+  }).join("");
+  const hits = ips.flatMap((ip, i) => {
+    const [x, y] = polar(ip.deg, R);
+    const tangent = -ip.deg;
+    return [0, 1.15, 2.3].map((extra, wave) => {
+      const delay = (i * 0.28 + extra).toFixed(2);
+      return `<g class="lhc-hit is-${ip.id}" style="--hx:${x.toFixed(1)}px;--hy:${y.toFixed(1)}px;--d:${delay}s">
+        ${flash(x, y)}
+        ${shower(x, y, tangent - 8 + wave * 6, "is-a", 23 + i * 11 + wave * 7)}
+        ${shower(x, y, tangent + 172 - wave * 5, "is-b", 59 + i * 13 + wave * 9)}
+      </g>`;
+    });
+  }).join("");
+  const data = ips.map((ip, i) => {
+    const [x1, y1] = polar(ip.deg, R - 8);
+    const [x2, y2] = polar(ip.deg, 52);
+    const d = `M${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)}`;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.hypot(dx, dy) || 1;
+    const lx = (x1 + x2) / 2 - (dy / len) * 18;
+    const ly = (y1 + y2) / 2 + (dx / len) * 18;
+    const peak = ip.id === "alice" ? 130 : 100;
+    const packets = Array.from({ length: 7 }, () =>
+      `<polygon class="lhc-packet" points="-3.4,-2.1 4.6,0 -3.4,2.1"/>`
+    ).join("");
+    return `<g class="lhc-data is-${ip.id}" data-lhc-flow="${ip.id}" data-peak="${peak}" data-phase="${(i * 5.2).toFixed(1)}">
+      <path class="lhc-data-line" d="${d}"/>
+      ${packets}
+      <text class="lhc-rate" data-lhc-rate="${ip.id}" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}">${peak} GB/s</text>
+    </g>`;
+  }).join("");
+  const globeX = CX + 92;
+  const globeY = CY + 560;
+  const globeD = `M ${CX} ${CY + 50} C ${CX + 66} ${CY + 170}, ${globeX} ${CY + 340}, ${globeX} ${globeY - 46}`;
+  const globePackets = Array.from({ length: 10 }, () =>
+    `<polygon class="lhc-packet is-out" points="-3.8,-2.3 5.2,0 -3.8,2.3"/>`
+  ).join("");
+  const globe = `<g class="lhc-data is-globe" data-lhc-flow="globe" data-peak="50">
+    <path class="lhc-data-line" d="${globeD}"/>
+    ${globePackets}
+    <text class="lhc-rate is-out" data-lhc-rate="globe" x="${globeX + 28}" y="${CY + 320}">50 GB/s</text>
+    <g class="lhc-globe" transform="translate(${globeX} ${globeY})">
+      <circle class="lhc-globe-sea" r="38" fill="url(#lhc-globe-sea-g)"/>
+      <g clip-path="url(#lhc-globe-clip)">
+        <g class="lhc-globe-map">
+          ${globeLandStrip()}
+          <g transform="translate(152 0)">${globeLandStrip()}</g>
+        </g>
+      </g>
+      <ellipse class="lhc-globe-lat" rx="38" ry="13"/>
+      <ellipse class="lhc-globe-lat is-tropic" rx="38" ry="24"/>
+      <ellipse class="lhc-globe-lon" rx="18" ry="38"/>
+      <ellipse class="lhc-globe-lon" rx="30" ry="38"/>
+      <circle r="38" fill="url(#lhc-globe-shade-g)"/>
+      <circle class="lhc-globe-rim" r="38"/>
+      <text class="lhc-det-name is-wlcg" y="52">
+        <tspan x="0" dy="0">World-wide LHC</tspan>
+        <tspan x="0" dy="13">Computing GRID</tspan>
+      </text>
+    </g>
+  </g>`;
+  const ctaX = CX - 86;
+  const ctaY = CY + 70;
+  const ctaD = `M ${CX - 30} ${CY + 24} L ${ctaX + 20} ${ctaY - 10}`;
+  const ctaPackets = Array.from({ length: 5 }, () =>
+    `<polygon class="lhc-packet is-tape" points="-3.5,-2.2 4.8,0 -3.5,2.2"/>`
+  ).join("");
+  const cta = `<g class="lhc-data is-cta" data-lhc-flow="cta" data-peak="100">
+    <path class="lhc-data-line" d="${ctaD}"/>
+    ${ctaPackets}
+    <text class="lhc-rate is-tape" data-lhc-rate="cta" x="${(CX + ctaX) / 2 - 8}" y="${(CY + ctaY) / 2 + 22}">100 GB/s</text>
+    <g class="lhc-cta" transform="translate(${ctaX} ${ctaY})">
+      <circle r="24" fill="none" stroke="#e4e4e4" stroke-width="6.2" stroke-linecap="round" stroke-dasharray="112 39" transform="rotate(28)"/>
+      <path d="M-18.4 12.6 A 24 24 0 0 0 -10.2 21.2" fill="none" stroke="#e65c00" stroke-width="6.2" stroke-linecap="round"/>
+      <circle r="13.2" fill="#ececec"/>
+      <circle r="3.4" fill="#111"/>
+      <circle cx="0" cy="-7.2" r="2" fill="#111"/>
+      <circle cx="7.2" cy="0" r="2" fill="#111"/>
+      <circle cx="0" cy="7.2" r="2" fill="#111"/>
+      <circle cx="-7.2" cy="0" r="2" fill="#111"/>
+      <text class="lhc-det-name" y="42">CTA</text>
+    </g>
+  </g>`;
   return `
-    <svg class="orbit-collide" viewBox="0 0 400 200" aria-hidden="true">
+    <svg class="lhc-map" viewBox="0 0 780 1040" aria-hidden="true">
       <defs>
         <filter id="collide-soft" x="-50%" y="-80%" width="200%" height="260%">
           <feGaussianBlur stdDeviation="1.3"/>
@@ -1238,21 +1519,77 @@ function collisionMarkup() {
           <stop offset="35%" stop-color="#ffe08a"/>
           <stop offset="100%" stop-color="#ff8a3a" stop-opacity="0"/>
         </radialGradient>
+        <radialGradient id="lhc-core-g" cx="50%" cy="46%" r="54%">
+          <stop offset="0%" stop-color="#2a2a2a"/>
+          <stop offset="100%" stop-color="#0a0a0a"/>
+        </radialGradient>
+        <clipPath id="lhc-globe-clip"><circle r="38"/></clipPath>
+        <radialGradient id="lhc-globe-sea-g" cx="36%" cy="34%" r="72%">
+          <stop offset="0%" stop-color="#4a92c8"/>
+          <stop offset="55%" stop-color="#1d5688"/>
+          <stop offset="100%" stop-color="#0c2748"/>
+        </radialGradient>
+        <radialGradient id="lhc-globe-shade-g" cx="34%" cy="32%" r="70%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+          <stop offset="42%" stop-color="#000000" stop-opacity="0"/>
+          <stop offset="100%" stop-color="#000000" stop-opacity="0.5"/>
+        </radialGradient>
+        <linearGradient id="lhc-run-grad" x1="0" y1="0" x2="1" y2="0.35">
+          <stop offset="0%" stop-color="#8d8d8d"/>
+          <stop offset="42%" stop-color="#c8c8c8"/>
+          <stop offset="100%" stop-color="#7a7a7a"/>
+        </linearGradient>
       </defs>
-      <line class="collide-beam" x1="8" y1="100" x2="392" y2="100"/>
-      <g transform="translate(200 100)">
-        ${bunch("is-l", 17)}
-        ${bunch("is-r", 41)}
+      <circle class="lhc-disc" cx="${CX}" cy="${CY}" r="258"/>
+      <circle class="lhc-tube-fill" cx="${CX}" cy="${CY}" r="${R}"/>
+      <circle class="lhc-tube-outer" cx="${CX}" cy="${CY}" r="242"/>
+      <circle class="lhc-tube-inner" cx="${CX}" cy="${CY}" r="214"/>
+      <circle class="lhc-beam-pipe is-cw" cx="${CX}" cy="${CY}" r="220"/>
+      <circle class="lhc-beam-pipe is-ccw" cx="${CX}" cy="${CY}" r="236"/>
+      ${[0, 45, 90, 135].map((d) => {
+        const [a1, b1] = polar(d, 214);
+        const [a2, b2] = polar(d, 242);
+        const [c1, d1] = polar(d + 180, 214);
+        const [c2, d2] = polar(d + 180, 242);
+        return `<line class="lhc-tick" x1="${a1.toFixed(1)}" y1="${b1.toFixed(1)}" x2="${a2.toFixed(1)}" y2="${b2.toFixed(1)}"/><line class="lhc-tick" x1="${c1.toFixed(1)}" y1="${d1.toFixed(1)}" x2="${c2.toFixed(1)}" y2="${d2.toFixed(1)}"/>`;
+      }).join("")}
+      ${data}
+      ${beams}
+      ${dets}
+      ${hits}
+      <g class="lhc-eos" transform="translate(${CX} ${CY})">
+        <circle r="48" fill="url(#lhc-core-g)"/>
+        <g class="lhc-eos-spin">
+          <image href="/static/media/eos-hex.png" x="-36" y="-36" width="72" height="72"/>
+        </g>
+        <ellipse class="lhc-comet-path" cx="0" cy="0" rx="58" ry="50"/>
+        <g class="lhc-comet-arm">
+          <g transform="translate(58 0)">
+            <ellipse class="lhc-comet-tail" cx="-1" cy="8" rx="1.5" ry="9"/>
+            <circle class="lhc-comet-glow" r="4.4"/>
+            <circle class="lhc-comet-head" r="2.3"/>
+          </g>
+        </g>
       </g>
-      <g class="collide-flash">
-        <circle class="collide-flash-core" cx="200" cy="100" r="16" fill="url(#collide-flash-g)"/>
-        <g filter="url(#collide-soft)">${rays}</g>
-      </g>
-      <g class="collide-event">
-        <g class="collide-aim is-a">${shower(-38, "is-a", 23)}</g>
-        <g class="collide-aim is-b">${shower(142, "is-b", 59)}</g>
-      </g>
+      ${cta}
+      ${globe}
+      <text class="lhc-run-title" transform="translate(108 198) rotate(-20)">EOS for LHC Run-4</text>
     </svg>`;
+}
+
+function lhcStackMarkup() {
+  const bricks = Array.from({ length: 12 }, (_, i) =>
+    `<i class="lhc-stack-brick" data-lhc-brick="${i}" style="--fill:0"></i>`
+  ).join("");
+  return `
+    <aside class="lhc-stack" aria-hidden="true">
+      <p class="lhc-stack-year">2030+</p>
+      <p class="lhc-stack-kicker">Collected Data</p>
+      <div class="lhc-stack-silo">${bricks}</div>
+      <p class="lhc-stack-eb" data-lhc-stack-eb>0.00 EB</p>
+      <p class="lhc-stack-month" data-lhc-stack-month>Month 1</p>
+      <p class="lhc-stack-note">~1 EB / year</p>
+    </aside>`;
 }
 
 function hero(extra = "") {
@@ -1294,16 +1631,11 @@ function hero(extra = "") {
             </div>
             ${latestNewsTicker()}
           </div>
-          <div class="orbit-slot">
-            <div class="orbit-logo" aria-hidden="true">
-              ${orbitSkyMarkup()}
-              ${windSwirlMarkup()}
-              <img src="/static/media/eos-hex.png" alt="" />
-              ${collisionMarkup()}
+          <div class="lhc-stage">
+            <div class="orbit-slot is-lhc">
+              <div class="lhc-scene" aria-hidden="true">${lhcMarkup()}</div>
             </div>
-            <div class="orbit-frame">
-              <video class="hero-orbit" muted loop playsinline preload="none" aria-label="EOS orbit"></video>
-            </div>
+            ${lhcStackMarkup()}
           </div>
         </div>
         ${extra}
@@ -2423,6 +2755,7 @@ function render() {
   stopAboutHighlight();
   stopLogoSpin();
   stopCollision();
+  stopLhcFlow();
   stopOrbitAlign();
   stopWallShine();
   stopWallCount();
@@ -2440,11 +2773,7 @@ function render() {
   if (path() === "/" || path() === "/about") startAboutHighlight();
   if (path() !== "/") return;
   startTermType();
-  // startHeroBackground(); // test: title background movie off
-  startOrbitMovie();
-  startLogoSpin();
-  startCollision();
-  startOrbitAlign();
+  startLhcFlow();
   startCapacityChart();
   const kick = () => {
     if (path() === "/") startTitleSpray();
