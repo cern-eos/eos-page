@@ -653,7 +653,10 @@ function lhcGlobeRate(t) {
 }
 
 function lhcCtaRate(t) {
-  return lhcSteadyRate(t + 1.4, 100, 2.5);
+  const slow = 0.5 + 0.5 * Math.sin(t * 0.24 + 1.4);
+  const kick = 0.5 + 0.5 * Math.sin(t * 0.67 + 0.5);
+  const u = Math.max(0, Math.min(1, slow * 0.7 + kick * 0.3));
+  return 100 + u * 100;
 }
 
 function startLhcFlow() {
@@ -1451,10 +1454,9 @@ function lhcMarkup() {
   const ctaPackets = Array.from({ length: 5 }, () =>
     `<polygon class="lhc-packet is-tape" points="-3.5,-2.2 4.8,0 -3.5,2.2"/>`
   ).join("");
-  const cta = `<g class="lhc-data is-cta" data-lhc-flow="cta" data-peak="100">
+  const cta = `<g class="lhc-data is-cta" data-lhc-flow="cta" data-peak="200">
     <path class="lhc-data-line" d="${ctaD}"/>
     ${ctaPackets}
-    <text class="lhc-rate is-tape" data-lhc-rate="cta" x="${(CX + ctaX) / 2 - 8}" y="${(CY + ctaY) / 2 + 22}">100 GB/s</text>
     <g class="lhc-cta" transform="translate(${ctaX} ${ctaY})">
       <circle r="24" fill="none" stroke="#e4e4e4" stroke-width="6.2" stroke-linecap="round" stroke-dasharray="112 39" transform="rotate(28)"/>
       <path d="M-18.4 12.6 A 24 24 0 0 0 -10.2 21.2" fill="none" stroke="#e65c00" stroke-width="6.2" stroke-linecap="round"/>
@@ -1464,7 +1466,8 @@ function lhcMarkup() {
       <circle cx="7.2" cy="0" r="2" fill="#111"/>
       <circle cx="0" cy="7.2" r="2" fill="#111"/>
       <circle cx="-7.2" cy="0" r="2" fill="#111"/>
-      <text class="lhc-det-name" y="42">CTA</text>
+      <text class="lhc-rate is-tape" data-lhc-rate="cta" x="0" y="40">100 GB/s</text>
+      <text class="lhc-det-name" y="54">CTA</text>
     </g>
   </g>`;
   return `
