@@ -536,7 +536,7 @@ body.is-wall .page-stage {
 }
 .lhc-globe-lat.is-tropic { stroke: rgba(200, 230, 255, 0.12); }
 .lhc-globe-land { fill: #4ea35a; }
-.lhc-globe-ice { fill: #e8f2f8; }
+.lhc-globe-cap { fill: rgba(232, 242, 248, 0.7); }
 .lhc-det-name {
   fill: #f4f1ea;
   font-family: "IBM Plex Sans", sans-serif;

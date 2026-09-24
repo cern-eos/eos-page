@@ -709,7 +709,8 @@ function startLhcFlow() {
         p.setAttribute("opacity", fade.toFixed(2));
       });
     }
-    const u = (t % 30) / 30;
+    const phase = t % 20;
+    const u = phase < 15 ? phase / 15 : 1;
     const eb = u * 1;
     const month = Math.min(11, Math.floor(u * 12));
     if (stackEb) stackEb.textContent = `${eb.toFixed(2)} EB`;
@@ -1262,9 +1263,7 @@ function globeLandStrip() {
     <path class="lhc-globe-land" d="M66,-16 C76,-18 84,-8 78,-2 C70,0 64,-6 66,-16z"/>
     <path class="lhc-globe-land" d="M68,-2 C80,-4 88,12 78,24 C66,18 62,6 68,-2z"/>
     <path class="lhc-globe-land" d="M88,-12 C108,-20 130,-8 128,6 C112,10 94,6 88,-12z"/>
-    <path class="lhc-globe-land" d="M122,12 C132,10 140,18 132,22 C124,22 118,16 122,12z"/>
-    <path class="lhc-globe-ice" d="M0,-36 h152 v10 C110,-28 40,-28 0,-26z"/>
-    <path class="lhc-globe-ice" d="M0,28 C48,24 112,24 152,28 v10 H0z"/>`;
+    <path class="lhc-globe-land" d="M122,12 C132,10 140,18 132,22 C124,22 118,16 122,12z"/>`;
 }
 
 function detectorArt(id) {
@@ -1456,31 +1455,35 @@ function lhcMarkup() {
       <text class="lhc-rate" data-lhc-rate="${ip.id}" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}">${peak} GB/s</text>
     </g>`;
   }).join("");
-  const globeX = CX + 92;
-  const globeY = CY + 560;
-  const globeD = `M ${CX} ${CY + 50} C ${CX + 66} ${CY + 170}, ${globeX} ${CY + 340}, ${globeX} ${globeY - 46}`;
+  const globeX = CX + 76;
+  const globeY = CY + 308;
+  const globeD = `M ${CX} ${CY + 50} C ${CX + 50} ${CY + 148}, ${globeX} ${CY + 224}, ${globeX} ${globeY - 34}`;
   const globePackets = Array.from({ length: 10 }, () =>
     `<polygon class="lhc-packet is-out" points="-3.8,-2.3 5.2,0 -3.8,2.3"/>`
   ).join("");
   const globe = `<g class="lhc-data is-globe" data-lhc-flow="globe" data-peak="50">
     <path class="lhc-data-line" d="${globeD}"/>
     ${globePackets}
-    <text class="lhc-rate is-out" data-lhc-rate="globe" x="${globeX + 28}" y="${CY + 320}">50 GB/s</text>
+    <text class="lhc-rate is-out" data-lhc-rate="globe" x="${globeX + 22}" y="${CY + 186}">50 GB/s</text>
     <g class="lhc-globe" transform="translate(${globeX} ${globeY})">
-      <circle class="lhc-globe-sea" r="38" fill="url(#lhc-globe-sea-g)"/>
-      <g clip-path="url(#lhc-globe-clip)">
-        <g class="lhc-globe-map">
-          ${globeLandStrip()}
-          <g transform="translate(152 0)">${globeLandStrip()}</g>
+      <g transform="scale(0.68)">
+        <circle class="lhc-globe-sea" r="38" fill="url(#lhc-globe-sea-g)"/>
+        <g clip-path="url(#lhc-globe-clip)">
+          <g class="lhc-globe-map">
+            ${globeLandStrip()}
+            <g transform="translate(152 0)">${globeLandStrip()}</g>
+          </g>
         </g>
+        <ellipse class="lhc-globe-lat" rx="38" ry="13"/>
+        <ellipse class="lhc-globe-lat is-tropic" rx="38" ry="24"/>
+        <ellipse class="lhc-globe-lon" rx="18" ry="38"/>
+        <ellipse class="lhc-globe-lon" rx="30" ry="38"/>
+        <ellipse class="lhc-globe-cap" cx="0" cy="-33" rx="11" ry="5"/>
+        <ellipse class="lhc-globe-cap" cx="0" cy="33" rx="12" ry="5.5"/>
+        <circle r="38" fill="url(#lhc-globe-shade-g)"/>
+        <circle class="lhc-globe-rim" r="38"/>
       </g>
-      <ellipse class="lhc-globe-lat" rx="38" ry="13"/>
-      <ellipse class="lhc-globe-lat is-tropic" rx="38" ry="24"/>
-      <ellipse class="lhc-globe-lon" rx="18" ry="38"/>
-      <ellipse class="lhc-globe-lon" rx="30" ry="38"/>
-      <circle r="38" fill="url(#lhc-globe-shade-g)"/>
-      <circle class="lhc-globe-rim" r="38"/>
-      <text class="lhc-det-name is-wlcg" y="52">
+      <text class="lhc-det-name is-wlcg" y="38">
         <tspan x="0" dy="0">World-wide LHC</tspan>
         <tspan x="0" dy="13">Computing GRID</tspan>
       </text>
@@ -1562,9 +1565,9 @@ function lhcMarkup() {
         <g class="lhc-eos-spin">
           <image href="/static/media/eos-hex.png" x="-36" y="-36" width="72" height="72"/>
         </g>
-        <ellipse class="lhc-comet-path" cx="0" cy="0" rx="58" ry="50"/>
+        <ellipse class="lhc-comet-path" cx="0" cy="0" rx="44" ry="38"/>
         <g class="lhc-comet-arm">
-          <g transform="translate(58 0)">
+          <g transform="translate(44 0)">
             <ellipse class="lhc-comet-tail" cx="-1" cy="8" rx="1.5" ry="9"/>
             <circle class="lhc-comet-glow" r="4.4"/>
             <circle class="lhc-comet-head" r="2.3"/>
