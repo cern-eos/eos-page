@@ -450,59 +450,47 @@ body.is-wall .page-stage {
   position: absolute;
   inset: 0;
   perspective: 9.5rem;
+  -webkit-perspective: 9.5rem;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
 }
 .lhc-eos-rig {
   position: absolute;
   inset: 0;
   transform: rotateX(56deg);
+  -webkit-transform: rotateX(56deg);
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
 }
 .lhc-eos-layer {
   position: absolute;
   left: 50%;
   top: 50%;
   width: 88%;
-  height: auto;
   margin: 0;
   transform-origin: center;
-  animation: lhc-eos-spin-0 6.6s linear infinite;
 }
 .lhc-eos-layer.is-0 {
   transform: translate(-50%, -50%) translateZ(0);
-  animation-name: lhc-eos-spin-0;
-  animation-duration: 6.6s;
   filter: brightness(0.58);
 }
 .lhc-eos-layer.is-1 {
   transform: translate(-50%, -50%) translateZ(0.78rem);
-  animation-name: lhc-eos-spin-1;
-  animation-duration: 5.8s;
   filter: brightness(0.73);
 }
 .lhc-eos-layer.is-2 {
   transform: translate(-50%, -50%) translateZ(1.56rem);
-  animation-name: lhc-eos-spin-2;
-  animation-duration: 5.15s;
   filter: brightness(0.88);
 }
 .lhc-eos-layer.is-3 {
   transform: translate(-50%, -50%) translateZ(2.34rem);
-  animation-name: lhc-eos-spin-3;
-  animation-duration: 4.45s;
   filter: brightness(1.03);
 }
-@keyframes lhc-eos-spin-0 {
-  to { transform: translate(-50%, -50%) translateZ(0) rotateZ(360deg); }
-}
-@keyframes lhc-eos-spin-1 {
-  to { transform: translate(-50%, -50%) translateZ(0.78rem) rotateZ(360deg); }
-}
-@keyframes lhc-eos-spin-2 {
-  to { transform: translate(-50%, -50%) translateZ(1.56rem) rotateZ(360deg); }
-}
-@keyframes lhc-eos-spin-3 {
-  to { transform: translate(-50%, -50%) translateZ(2.34rem) rotateZ(360deg); }
+.lhc-eos-face {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform-origin: center;
 }
 .lhc-disc { fill: rgba(255, 255, 255, 0.03); }
 .lhc-tube-fill {
@@ -2834,6 +2822,7 @@ mark.kw {
   .lhc-beam,
   .lhc-eos-spin,
   .lhc-eos-layer,
+  .lhc-eos-face,
   .lhc-comet-arm,
   .lhc-globe-map,
   .lhc-hit .collide-flash,

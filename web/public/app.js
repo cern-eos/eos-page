@@ -676,6 +676,9 @@ function startLhcFlow() {
   const stackBricks = [...document.querySelectorAll("[data-lhc-brick]")];
   const stackEb = document.querySelector("[data-lhc-stack-eb]");
   const stackMonth = document.querySelector("[data-lhc-stack-month]");
+  const hexFaces = [...document.querySelectorAll(".lhc-eos-face")];
+  const hexSpeeds = [360 / 6.6, 360 / 5.8, 360 / 5.15, 360 / 4.45];
+  const hexAng = hexFaces.map(() => 0);
   const t0 = performance.now();
   let last = t0;
   const tick = (now) => {
@@ -718,6 +721,10 @@ function startLhcFlow() {
     if (stackMonth) stackMonth.textContent = `Month ${month + 1}`;
     stackBricks.forEach((b, i) => {
       b.style.setProperty("--fill", String(Math.max(0, Math.min(1, u * 12 - i))));
+    });
+    hexFaces.forEach((el, i) => {
+      hexAng[i] = (hexAng[i] + dt * (hexSpeeds[i] || hexSpeeds[0])) % 360;
+      el.style.transform = `rotate(${hexAng[i].toFixed(2)}deg)`;
     });
     lhcFlowRaf = requestAnimationFrame(tick);
   };
@@ -1639,10 +1646,10 @@ function hero(extra = "") {
                 <div class="lhc-eos-place">
                   <div class="lhc-eos-stack">
                     <div class="lhc-eos-rig">
-                      <img class="lhc-eos-layer is-0" src="/static/media/eos-hex.png" alt=""/>
-                      <img class="lhc-eos-layer is-1" src="/static/media/eos-hex.png" alt=""/>
-                      <img class="lhc-eos-layer is-2" src="/static/media/eos-hex.png" alt=""/>
-                      <img class="lhc-eos-layer is-3" src="/static/media/eos-hex.png" alt=""/>
+                      <div class="lhc-eos-layer is-0"><img class="lhc-eos-face" src="/static/media/eos-hex.png" alt=""/></div>
+                      <div class="lhc-eos-layer is-1"><img class="lhc-eos-face" src="/static/media/eos-hex.png" alt=""/></div>
+                      <div class="lhc-eos-layer is-2"><img class="lhc-eos-face" src="/static/media/eos-hex.png" alt=""/></div>
+                      <div class="lhc-eos-layer is-3"><img class="lhc-eos-face" src="/static/media/eos-hex.png" alt=""/></div>
                     </div>
                   </div>
                 </div>
