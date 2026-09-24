@@ -1652,13 +1652,14 @@ button.hero-term { text-align: left; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
 .news-ticker {
   margin: 1.05rem 0 0;
-  max-width: 38rem;
+  max-width: min(38rem, 100%);
   overflow: hidden;
   mask-image: linear-gradient(90deg, transparent, #000 1.1rem, #000 calc(100% - 1.1rem), transparent);
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 1.1rem, #000 calc(100% - 1.1rem), transparent);
 }
 .news-ticker-link {
   display: block;
+  overflow: hidden;
   text-decoration: none;
   filter:
     drop-shadow(0 1px 0 rgba(255, 246, 232, 0.45))
@@ -2856,10 +2857,24 @@ mark.kw {
 }
 
 @media (max-width: 860px) {
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  .hero,
+  .hero-inner,
+  .hero-copy,
+  .hero-title-row,
+  #app {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
   .hero-title-row {
     flex-direction: column;
     align-items: flex-start;
   }
+  .title-glints { inset: 0; }
   .orbit-slot {
     width: min(13.5rem, 72vw);
     flex-basis: auto;
@@ -2868,12 +2883,30 @@ mark.kw {
     gap: 0;
   }
   .orbit-slot.is-lhc {
-    width: min(19.2rem, 88vw);
-    margin: 0 auto;
+    width: min(16.5rem, calc(100% - 5.8rem));
+    margin: 0;
   }
   .lhc-stage {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     justify-content: center;
+    gap: 0.55rem;
+  }
+  .lhc-stack {
+    width: 5.2rem;
+    flex: 0 0 5.2rem;
+  }
+  .search-box input { min-width: 0; }
+  .eos-chat {
+    right: 1rem;
+    bottom: 1rem;
+    width: min(22.5rem, calc(100% - 2rem));
+  }
+  .eos-chat.is-large {
+    right: 0.6rem;
+    bottom: 0.6rem;
+    width: min(46rem, calc(100% - 1.2rem));
   }
   .title-loupe .diopside {
     margin-left: 0.28em;
