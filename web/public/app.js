@@ -644,19 +644,19 @@ function lhcInboundRate(t, peak, phase) {
   return Math.max(56, env + wobble);
 }
 
-function lhcSteadyRate(t, center, wobble) {
-  return center + Math.sin(t * 0.32) * wobble * 0.7 + Math.sin(t * 0.11) * wobble * 0.3;
+function lhcSwingRate(t, lo, hi, phase) {
+  const slow = 0.5 + 0.5 * Math.sin(t * 0.24 + phase);
+  const kick = 0.5 + 0.5 * Math.sin(t * 0.67 + phase + 0.5);
+  const u = Math.max(0, Math.min(1, slow * 0.7 + kick * 0.3));
+  return lo + u * (hi - lo);
 }
 
 function lhcGlobeRate(t) {
-  return lhcSteadyRate(t, 50, 2);
+  return lhcSwingRate(t, 50, 150, 0.3);
 }
 
 function lhcCtaRate(t) {
-  const slow = 0.5 + 0.5 * Math.sin(t * 0.24 + 1.4);
-  const kick = 0.5 + 0.5 * Math.sin(t * 0.67 + 0.5);
-  const u = Math.max(0, Math.min(1, slow * 0.7 + kick * 0.3));
-  return 100 + u * 100;
+  return lhcSwingRate(t, 100, 300, 1.4);
 }
 
 function startLhcFlow() {
@@ -1420,7 +1420,7 @@ function lhcMarkup() {
   const globePackets = Array.from({ length: 10 }, () =>
     `<polygon class="lhc-packet is-out" points="-3.8,-2.3 5.2,0 -3.8,2.3"/>`
   ).join("");
-  const globe = `<g class="lhc-data is-globe" data-lhc-flow="globe" data-peak="50">
+  const globe = `<g class="lhc-data is-globe" data-lhc-flow="globe" data-peak="150">
     <path class="lhc-data-line" d="${globeD}"/>
     ${globePackets}
     <text class="lhc-rate is-out" data-lhc-rate="globe" x="${globeX + 22}" y="${CY + 186}">50 GB/s</text>
@@ -1454,7 +1454,7 @@ function lhcMarkup() {
   const ctaPackets = Array.from({ length: 5 }, () =>
     `<polygon class="lhc-packet is-tape" points="-3.5,-2.2 4.8,0 -3.5,2.2"/>`
   ).join("");
-  const cta = `<g class="lhc-data is-cta" data-lhc-flow="cta" data-peak="200">
+  const cta = `<g class="lhc-data is-cta" data-lhc-flow="cta" data-peak="300">
     <path class="lhc-data-line" d="${ctaD}"/>
     ${ctaPackets}
     <g class="lhc-cta" transform="translate(${ctaX} ${ctaY})">
@@ -2385,13 +2385,28 @@ function wallPeople() {
     .filter((p) => !isRootContributor(p))
     .map((p) => {
       const rank = wallRank(p.commits);
-      return { ...p, rank: rank.key, band: rank.label, shine: rank.shine, commits: Number(p.commits) || 0 };
+      return { ...p, rank: rank.key, band: rank.label, shine: rank.shine, commits: Number(p.commits) || 0, assisted: Number(p.assisted) || 0 };
     })
     .sort((a, b) => {
       const ia = WALL_RANKS.findIndex((r) => r.key === a.rank);
       const ib = WALL_RANKS.findIndex((r) => r.key === b.rank);
       return ia - ib || b.commits - a.commits || String(a.name).localeCompare(String(b.name));
     });
+}
+
+function wallAiBadge(n) {
+  const label = `${n.toLocaleString("en-US")} AI-assisted ${n === 1 ? "commit" : "commits"}`;
+  return `<span class="wall-ai" title="${esc(label)}">
+    <svg class="wall-ai-bot" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2.2v3.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <circle cx="12" cy="2.1" r="1.25" fill="#ffb067"/>
+      <rect x="4.6" y="6.8" width="14.8" height="13.2" rx="3.4" fill="currentColor"/>
+      <circle cx="9.6" cy="12.2" r="1.7" fill="#7dff9a"/>
+      <circle cx="14.4" cy="12.2" r="1.7" fill="#7dff9a"/>
+      <path d="M9.2 16.6h5.6" fill="none" stroke="#111" stroke-width="1.4" stroke-linecap="round"/>
+    </svg>
+    <b>${n.toLocaleString("en-US")}</b>
+  </span>`;
 }
 
 function wall() {
@@ -2409,6 +2424,7 @@ function wall() {
       <strong>${esc(p.name)}</strong>
       <em>${p.commits.toLocaleString("en-US")} ${p.commits === 1 ? "commit" : "commits"}</em>
       <span class="wall-band">${esc(p.band)}</span>
+      ${p.assisted > 0 ? wallAiBadge(p.assisted) : ""}
     </article>`).join("");
   return `
     <div class="wall-page">

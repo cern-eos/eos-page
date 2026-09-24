@@ -8,10 +8,11 @@ import (
 )
 
 type GitContributor struct {
-	Sort    int    `json:"sort"`
-	Commits int    `json:"commits"`
-	Name    string `json:"name"`
-	Email   string `json:"email,omitempty"`
+	Sort     int    `json:"sort"`
+	Commits  int    `json:"commits"`
+	Assisted int    `json:"assisted,omitempty"`
+	Name     string `json:"name"`
+	Email    string `json:"email,omitempty"`
 }
 
 func (s *Store) ensureGitContributors() error {
@@ -62,8 +63,8 @@ func (s *Store) ReplaceGitContributors(people []GitContributor) error {
 			sort = i + 1
 		}
 		id := fmt.Sprintf("c-%d", sort)
-		if _, err := tx.Exec(`INSERT INTO git_contributors(id, sort, commits, name, email) VALUES(?,?,?,?,?)`,
-			id, sort, p.Commits, p.Name, p.Email); err != nil {
+		if _, err := tx.Exec(`INSERT INTO git_contributors(id, sort, commits, assisted, name, email) VALUES(?,?,?,?,?,?)`,
+			id, sort, p.Commits, p.Assisted, p.Name, p.Email); err != nil {
 			return err
 		}
 	}
@@ -71,7 +72,7 @@ func (s *Store) ReplaceGitContributors(people []GitContributor) error {
 }
 
 func (s *Store) ListGitContributors() ([]GitContributor, error) {
-	rows, err := s.db.Query(`SELECT sort, commits, name, email FROM git_contributors ORDER BY sort, commits DESC, name`)
+	rows, err := s.db.Query(`SELECT sort, commits, assisted, name, email FROM git_contributors ORDER BY sort, commits DESC, name`)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +80,7 @@ func (s *Store) ListGitContributors() ([]GitContributor, error) {
 	var out []GitContributor
 	for rows.Next() {
 		var p GitContributor
-		if err := rows.Scan(&p.Sort, &p.Commits, &p.Name, &p.Email); err != nil {
+		if err := rows.Scan(&p.Sort, &p.Commits, &p.Assisted, &p.Name, &p.Email); err != nil {
 			return nil, err
 		}
 		out = append(out, p)
@@ -91,6 +92,7 @@ func normalizeSeedContributors(people []GitContributor) []GitContributor {
 	type bucket struct {
 		name, email string
 		commits     int
+		assisted    int
 	}
 	merged := map[string]*bucket{}
 	order := []string{}
@@ -108,15 +110,16 @@ func normalizeSeedContributors(people []GitContributor) []GitContributor {
 		}
 		if b, ok := merged[key]; ok {
 			b.commits += p.Commits
+			b.assisted += p.Assisted
 			continue
 		}
-		merged[key] = &bucket{name: name, email: email, commits: p.Commits}
+		merged[key] = &bucket{name: name, email: email, commits: p.Commits, assisted: p.Assisted}
 		order = append(order, key)
 	}
 	out := make([]GitContributor, 0, len(order))
 	for _, key := range order {
 		b := merged[key]
-		out = append(out, GitContributor{Name: b.name, Email: b.email, Commits: b.commits})
+		out = append(out, GitContributor{Name: b.name, Email: b.email, Commits: b.commits, Assisted: b.assisted})
 	}
 	sort.SliceStable(out, func(i, j int) bool {
 		if out[i].Commits != out[j].Commits {

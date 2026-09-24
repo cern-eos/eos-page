@@ -322,11 +322,16 @@ CREATE TABLE IF NOT EXISTS git_contributors (
   id TEXT PRIMARY KEY,
   sort INTEGER NOT NULL DEFAULT 0,
   commits INTEGER NOT NULL DEFAULT 0,
+  assisted INTEGER NOT NULL DEFAULT 0,
   name TEXT NOT NULL DEFAULT '',
   email TEXT NOT NULL DEFAULT ''
 );
 `)
-	return err
+	if err != nil {
+		return err
+	}
+	_, _ = s.db.Exec(`ALTER TABLE git_contributors ADD COLUMN assisted INTEGER NOT NULL DEFAULT 0`)
+	return nil
 }
 
 func (s *Store) Setting(key string) string {

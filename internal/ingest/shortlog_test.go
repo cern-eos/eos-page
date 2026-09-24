@@ -90,6 +90,47 @@ func TestNormalizeMergesAndDropsAutomation(t *testing.T) {
 	}
 }
 
+func TestParseGitAssistedLog(t *testing.T) {
+	raw := `
+Andreas Joachim Peters <andreas.joachim.peters@cern.ch>
+Andreas Joachim Peters <andreas.joachim.peters@cern.ch>
+Elvin Sindrilaru <esindrl@cern.ch>
+Unknown <root@vmeos03.cern.ch>
+`
+	got := ParseGitAssistedLog(raw)
+	if len(got) != 3 {
+		t.Fatalf("len %d: %+v", len(got), got)
+	}
+	by := map[string]int{}
+	for _, p := range got {
+		by[p.Email] = p.Assisted
+	}
+	if by["andreas.joachim.peters@cern.ch"] != 2 || by["esindrl@cern.ch"] != 1 {
+		t.Fatalf("counts %+v", got)
+	}
+}
+
+func TestApplyAssistedCounts(t *testing.T) {
+	people := NormalizeGitContributors([]store.GitContributor{
+		c("Elvin Alin Sindrilaru", "elvin.alin.sindrilaru@cern.ch", 100),
+		c("Andreas Joachim Peters", "andreas.joachim.peters@cern.ch", 80),
+	})
+	got := ApplyAssistedCounts(people, ParseGitAssistedLog(`
+Elvin Sindrilaru <esindrl@cern.ch>
+Elvin Sindrilaru <elvin.sindrilaru@gmail.com>
+Andreas Joachim Peters <andreas.joachim.peters@cern.ch>
+`))
+	want := map[string]int{
+		"elvin.alin.sindrilaru@cern.ch":     2,
+		"andreas.joachim.peters@cern.ch": 1,
+	}
+	for _, p := range got {
+		if p.Assisted != want[p.Email] {
+			t.Fatalf("%s assisted %d want %d", p.Email, p.Assisted, want[p.Email])
+		}
+	}
+}
+
 func c(name, email string, n int) store.GitContributor {
 	return store.GitContributor{Name: name, Email: email, Commits: n}
 }

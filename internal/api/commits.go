@@ -103,5 +103,11 @@ func (s *Server) refreshGitContributors(ctx context.Context) {
 		log.Printf("wall of fame: store failed: %v", err)
 		return
 	}
-	log.Printf("wall of fame: loaded %d contributors from git shortlog -sne --all (%s)", len(people), dir)
+	ai := 0
+	for _, p := range people {
+		if p.Assisted > 0 {
+			ai++
+		}
+	}
+	log.Printf("wall of fame: loaded %d contributors from git shortlog -sne --all (%s), %d with AI-assisted commits", len(people), dir, ai)
 }

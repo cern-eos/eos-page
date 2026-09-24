@@ -3225,7 +3225,8 @@ body.is-docs-open { overflow: hidden; }
 .wall-plaque strong,
 .wall-plaque em,
 .wall-plaque .wall-band,
-.wall-plaque .wall-rank {
+.wall-plaque .wall-rank,
+.wall-plaque .wall-ai {
   position: relative;
   z-index: 1;
 }
@@ -3251,6 +3252,32 @@ body.is-docs-open { overflow: hidden; }
   left: 0.4rem;
   font-family: var(--mono);
   font-size: 0.8rem;
+}
+.wall-ai {
+  position: absolute;
+  right: 0.28rem;
+  bottom: 0.22rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  padding: 0.1rem 0.32rem 0.1rem 0.16rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  color: inherit;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1;
+}
+.wall-ai b { font-weight: 650; }
+.wall-ai-bot {
+  display: block;
+  width: 0.98rem;
+  height: 0.98rem;
+  animation: wall-ai-bob 2.4s ease-in-out infinite;
+}
+@keyframes wall-ai-bob {
+  50% { transform: translateY(-1px) rotate(-8deg); }
 }
 .wall-plaque.is-shine::after {
   content: "";
@@ -3383,4 +3410,5 @@ body.is-docs-open { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .wall-plaque.is-shine::after,
   .wall-plaque.is-flashing::after { animation: none; display: none; }
+  .wall-ai-bot { animation: none; }
 }

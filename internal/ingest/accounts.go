@@ -39,9 +39,10 @@ var verifiedNames = map[string]string{
 
 func NormalizeGitContributors(people []store.GitContributor) []store.GitContributor {
 	type bucket struct {
-		name    string
-		email   string
-		commits int
+		name     string
+		email    string
+		commits  int
+		assisted int
 	}
 	merged := map[string]*bucket{}
 	order := []string{}
@@ -59,15 +60,16 @@ func NormalizeGitContributors(people []store.GitContributor) []store.GitContribu
 		}
 		if b, ok := merged[key]; ok {
 			b.commits += p.Commits
+			b.assisted += p.Assisted
 			continue
 		}
-		merged[key] = &bucket{name: name, email: email, commits: p.Commits}
+		merged[key] = &bucket{name: name, email: email, commits: p.Commits, assisted: p.Assisted}
 		order = append(order, key)
 	}
 	out := make([]store.GitContributor, 0, len(order))
 	for _, key := range order {
 		b := merged[key]
-		out = append(out, store.GitContributor{Name: b.name, Email: b.email, Commits: b.commits})
+		out = append(out, store.GitContributor{Name: b.name, Email: b.email, Commits: b.commits, Assisted: b.assisted})
 	}
 	sort.SliceStable(out, func(i, j int) bool {
 		if out[i].Commits != out[j].Commits {
