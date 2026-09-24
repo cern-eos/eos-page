@@ -1636,12 +1636,14 @@ function hero(extra = "") {
             <div class="orbit-slot is-lhc">
               <div class="lhc-scene" aria-hidden="true">
                 ${lhcMarkup()}
-                <div class="lhc-eos-stack">
-                  <div class="lhc-eos-rig">
-                    <img class="lhc-eos-layer" style="--i:0;--spin:6.6s" src="/static/media/eos-hex.png" alt=""/>
-                    <img class="lhc-eos-layer" style="--i:1;--spin:5.8s" src="/static/media/eos-hex.png" alt=""/>
-                    <img class="lhc-eos-layer" style="--i:2;--spin:5.15s" src="/static/media/eos-hex.png" alt=""/>
-                    <img class="lhc-eos-layer" style="--i:3;--spin:4.45s" src="/static/media/eos-hex.png" alt=""/>
+                <div class="lhc-eos-place">
+                  <div class="lhc-eos-stack">
+                    <div class="lhc-eos-rig">
+                      <img class="lhc-eos-layer is-0" src="/static/media/eos-hex.png" alt=""/>
+                      <img class="lhc-eos-layer is-1" src="/static/media/eos-hex.png" alt=""/>
+                      <img class="lhc-eos-layer is-2" src="/static/media/eos-hex.png" alt=""/>
+                      <img class="lhc-eos-layer is-3" src="/static/media/eos-hex.png" alt=""/>
+                    </div>
                   </div>
                 </div>
               </div>

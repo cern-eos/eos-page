@@ -436,7 +436,7 @@ body.is-wall .page-stage {
   height: auto;
   overflow: visible;
 }
-.lhc-eos-stack {
+.lhc-eos-place {
   position: absolute;
   left: 50%;
   top: 37.5%;
@@ -444,9 +444,13 @@ body.is-wall .page-stage {
   width: 18.5%;
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.lhc-eos-stack {
+  position: absolute;
+  inset: 0;
   perspective: 9.5rem;
   transform-style: preserve-3d;
-  pointer-events: none;
 }
 .lhc-eos-rig {
   position: absolute;
@@ -461,13 +465,44 @@ body.is-wall .page-stage {
   width: 88%;
   height: auto;
   margin: 0;
-  transform: translate(-50%, -50%) translateZ(calc(var(--i) * 0.78rem));
   transform-origin: center;
-  animation: lhc-eos-layer var(--spin) linear infinite;
-  filter: brightness(calc(0.58 + var(--i) * 0.15));
+  animation: lhc-eos-spin-0 6.6s linear infinite;
 }
-@keyframes lhc-eos-layer {
-  to { transform: translate(-50%, -50%) translateZ(calc(var(--i) * 0.78rem)) rotateZ(360deg); }
+.lhc-eos-layer.is-0 {
+  transform: translate(-50%, -50%) translateZ(0);
+  animation-name: lhc-eos-spin-0;
+  animation-duration: 6.6s;
+  filter: brightness(0.58);
+}
+.lhc-eos-layer.is-1 {
+  transform: translate(-50%, -50%) translateZ(0.78rem);
+  animation-name: lhc-eos-spin-1;
+  animation-duration: 5.8s;
+  filter: brightness(0.73);
+}
+.lhc-eos-layer.is-2 {
+  transform: translate(-50%, -50%) translateZ(1.56rem);
+  animation-name: lhc-eos-spin-2;
+  animation-duration: 5.15s;
+  filter: brightness(0.88);
+}
+.lhc-eos-layer.is-3 {
+  transform: translate(-50%, -50%) translateZ(2.34rem);
+  animation-name: lhc-eos-spin-3;
+  animation-duration: 4.45s;
+  filter: brightness(1.03);
+}
+@keyframes lhc-eos-spin-0 {
+  to { transform: translate(-50%, -50%) translateZ(0) rotateZ(360deg); }
+}
+@keyframes lhc-eos-spin-1 {
+  to { transform: translate(-50%, -50%) translateZ(0.78rem) rotateZ(360deg); }
+}
+@keyframes lhc-eos-spin-2 {
+  to { transform: translate(-50%, -50%) translateZ(1.56rem) rotateZ(360deg); }
+}
+@keyframes lhc-eos-spin-3 {
+  to { transform: translate(-50%, -50%) translateZ(2.34rem) rotateZ(360deg); }
 }
 .lhc-disc { fill: rgba(255, 255, 255, 0.03); }
 .lhc-tube-fill {
