@@ -710,7 +710,8 @@ function startLhcFlow() {
       });
     }
     const phase = t % 20;
-    const u = phase < 15 ? phase / 15 : 1;
+    const p = phase < 15 ? phase / 15 : 1;
+    const u = p >= 1 ? 1 : (Math.exp(2.2 * p) - 1) / (Math.exp(2.2) - 1);
     const eb = u * 1;
     const month = Math.min(11, Math.floor(u * 12));
     if (stackEb) stackEb.textContent = `${eb.toFixed(2)} EB`;
@@ -1562,9 +1563,6 @@ function lhcMarkup() {
       ${hits}
       <g class="lhc-eos" transform="translate(${CX} ${CY})">
         <circle r="48" fill="url(#lhc-core-g)"/>
-        <g class="lhc-eos-spin">
-          <image href="/static/media/eos-hex.png" x="-36" y="-36" width="72" height="72"/>
-        </g>
         <ellipse class="lhc-comet-path" cx="0" cy="0" rx="44" ry="38"/>
         <g class="lhc-comet-arm">
           <g transform="translate(44 0)">
@@ -1636,7 +1634,17 @@ function hero(extra = "") {
           </div>
           <div class="lhc-stage">
             <div class="orbit-slot is-lhc">
-              <div class="lhc-scene" aria-hidden="true">${lhcMarkup()}</div>
+              <div class="lhc-scene" aria-hidden="true">
+                ${lhcMarkup()}
+                <div class="lhc-eos-stack">
+                  <div class="lhc-eos-rig">
+                    <img class="lhc-eos-layer" style="--i:0;--spin:6.6s" src="/static/media/eos-hex.png" alt=""/>
+                    <img class="lhc-eos-layer" style="--i:1;--spin:5.8s" src="/static/media/eos-hex.png" alt=""/>
+                    <img class="lhc-eos-layer" style="--i:2;--spin:5.15s" src="/static/media/eos-hex.png" alt=""/>
+                    <img class="lhc-eos-layer" style="--i:3;--spin:4.45s" src="/static/media/eos-hex.png" alt=""/>
+                  </div>
+                </div>
+              </div>
             </div>
             ${lhcStackMarkup()}
           </div>

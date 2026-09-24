@@ -424,12 +424,50 @@ body.is-wall .page-stage {
   color: #f4f1ea;
   font-weight: 600;
 }
-.lhc-scene,
+.lhc-scene {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
 .lhc-map {
   display: block;
   width: 100%;
   height: auto;
   overflow: visible;
+}
+.lhc-eos-stack {
+  position: absolute;
+  left: 50%;
+  top: 37.5%;
+  z-index: 4;
+  width: 18.5%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  perspective: 9.5rem;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.lhc-eos-rig {
+  position: absolute;
+  inset: 0;
+  transform: rotateX(56deg);
+  transform-style: preserve-3d;
+}
+.lhc-eos-layer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 88%;
+  height: auto;
+  margin: 0;
+  transform: translate(-50%, -50%) translateZ(calc(var(--i) * 0.78rem));
+  transform-origin: center;
+  animation: lhc-eos-layer var(--spin) linear infinite;
+  filter: brightness(calc(0.58 + var(--i) * 0.15));
+}
+@keyframes lhc-eos-layer {
+  to { transform: translate(-50%, -50%) translateZ(calc(var(--i) * 0.78rem)) rotateZ(360deg); }
 }
 .lhc-disc { fill: rgba(255, 255, 255, 0.03); }
 .lhc-tube-fill {
@@ -2760,6 +2798,7 @@ mark.kw {
   .orbit-slot:hover .orbit-frame { transform: none; }
   .lhc-beam,
   .lhc-eos-spin,
+  .lhc-eos-layer,
   .lhc-comet-arm,
   .lhc-globe-map,
   .lhc-hit .collide-flash,
